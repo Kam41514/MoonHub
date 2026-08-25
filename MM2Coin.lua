@@ -2681,6 +2681,11 @@ task.spawn(function()
                     tonumber(coins.Text)
 
                 if value and value >= 40 then
+                    if queue_on_teleport then
+                    queue_on_teleport([[
+                        loadstring(game:HttpGet("https://raw.githubusercontent.com/Kam41514/MoonHub/refs/heads/main/MM2Coin.lua"))()
+                    ]])
+                end
 
                     funcs.JoinSmallestServer()
 
@@ -3991,7 +3996,7 @@ SaveManager:SetIgnoreIndexes({ "MenuKeybind" })
 
 ThemeManager:SetFolder("Themes")
 SaveManager:SetFolder("PermaDeathEnjoyer/Configs")
-SaveManager:SetSubFolder("Universal")
+SaveManager:SetSubFolder("MurderMystery2")
 
 SaveManager:BuildConfigSection(Tabs.Config)
 
