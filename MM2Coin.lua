@@ -2541,6 +2541,16 @@ Groupboxes.Botting:AddToggle(
 
 end)
 
+
+if Options.CoinTeleportToggle
+    and Options.CoinTeleportToggle.Value
+then
+
+    funcs.StartCoinTeleport()
+
+end
+
+
 function funcs.GetServers(order)
     local placeId = game.PlaceId
     local cursor = ""
