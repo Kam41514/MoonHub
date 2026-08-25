@@ -13,8 +13,8 @@ gui.IgnoreGuiInset = true
 gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 gui.Parent = playerGui
 
-local PURPLE = Color3.fromRGB(105, 55, 155)
-local PURPLE_HOVER = Color3.fromRGB(150, 85, 220)
+local PURPLE = Color3.fromRGB(75, 35, 105)
+local PURPLE_HOVER = Color3.fromRGB(135, 70, 190)
 
 local BG = Color3.fromRGB(12, 12, 14)
 local BUTTON_BG = Color3.fromRGB(19, 19, 22)
@@ -39,24 +39,13 @@ frameCorner.Parent = frame
 
 local frameStroke = Instance.new("UIStroke")
 frameStroke.Color = PURPLE
-frameStroke.Thickness = 0.45
-frameStroke.Transparency = 0.08
+frameStroke.Thickness = 0.7
+frameStroke.Transparency = 0.02
 frameStroke.Parent = frame
 
-local topAccent = Instance.new("Frame")
-topAccent.Size = UDim2.new(0, 100, 0, 2)
-topAccent.Position = UDim2.new(0.5, -50, 0, 0)
-topAccent.BackgroundColor3 = PURPLE
-topAccent.BorderSizePixel = 0
-topAccent.Parent = frame
-
-local topAccentCorner = Instance.new("UICorner")
-topAccentCorner.CornerRadius = UDim.new(1, 0)
-topAccentCorner.Parent = topAccent
-
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(0, 90, 0, 27)
-title.Position = UDim2.new(0, 35, 0, 18)
+title.Size = UDim2.new(0, 100, 0, 27)
+title.Position = UDim2.new(0, 38, 0, 18)
 title.BackgroundTransparency = 1
 title.Text = "MoonHub"
 title.TextColor3 = TEXT
@@ -68,7 +57,7 @@ title.Parent = frame
 
 local beta = Instance.new("TextLabel")
 beta.Size = UDim2.new(0, 44, 0, 19)
-beta.Position = UDim2.new(0, 137, 0, 22)
+beta.Position = UDim2.new(0, 145, 0, 22)
 beta.BackgroundColor3 = Color3.fromRGB(35, 27, 42)
 beta.BackgroundTransparency = 0.1
 beta.BorderSizePixel = 0
@@ -85,9 +74,9 @@ betaCorner.CornerRadius = UDim.new(0, 6)
 betaCorner.Parent = beta
 
 local betaStroke = Instance.new("UIStroke")
-betaStroke.Color = Color3.fromRGB(75, 45, 100)
-betaStroke.Thickness = 0.45
-betaStroke.Transparency = 0.35
+betaStroke.Color = Color3.fromRGB(65, 35, 90)
+betaStroke.Thickness = 0.5
+betaStroke.Transparency = 0.2
 betaStroke.Parent = beta
 
 local closeButton = Instance.new("TextButton")
@@ -108,7 +97,7 @@ closeCorner.Parent = closeButton
 
 local closeStroke = Instance.new("UIStroke")
 closeStroke.Color = Color3.fromRGB(60, 45, 70)
-closeStroke.Thickness = 0.45
+closeStroke.Thickness = 0.5
 closeStroke.Parent = closeButton
 
 closeButton.MouseEnter:Connect(function()
@@ -296,21 +285,21 @@ local leftButton = createButton(
 	"Bloodlines",
 	"Launch Bloodlines loader",
 	140,
-	Color3.fromRGB(125, 70, 180)
+	Color3.fromRGB(105, 55, 155)
 )
 
 local rightButton = createButton(
 	"Murder Mystery 2",
 	"Launch Murder Mystery 2 loader",
 	208,
-	Color3.fromRGB(135, 75, 190)
+	Color3.fromRGB(115, 60, 165)
 )
 
 local universalButton = createButton(
 	"Universal",
-	"Universal  Script",
+	"Launch Universal loader",
 	276,
-	Color3.fromRGB(145, 80, 200)
+	Color3.fromRGB(125, 65, 175)
 )
 
 local footer = Instance.new("TextLabel")
@@ -528,11 +517,50 @@ rightButton.MouseButton1Click:Connect(function()
 end)
 
 universalButton.MouseButton1Click:Connect(function()
-	launchGame(
-		game.PlaceId,
-		"Universal",
-		"https://raw.githubusercontent.com/Kam41514/ScriptHub/refs/heads/main/Universal.lua"
-	)
+	if isDeleted then
+		return
+	end
+
+	status.Text = "●  Launching Universal"
+	status.TextColor3 = PURPLE_HOVER
+
+	closeGUI()
+
+	task.delay(0.22, function()
+		if isDeleted then
+			return
+		end
+
+		local success, result = pcall(function()
+			local source = game:HttpGet(
+				"https://raw.githubusercontent.com/Kam41514/ScriptHub/refs/heads/main/Universal.lua"
+			)
+
+			local func = loadstring(source)
+
+			if type(func) ~= "function" then
+				error("loadstring returned nil or invalid function")
+			end
+
+			return func()
+		end)
+
+		if not success then
+			warn("[MoonHub] Universal loader error:", result)
+
+			if gui and gui.Parent then
+				status.Text = "●  Universal failed"
+				status.TextColor3 = Color3.fromRGB(255, 100, 115)
+
+				task.delay(2, function()
+					if gui and gui.Parent and not isDeleted then
+						status.Text = "●  Ready"
+						status.TextColor3 = Color3.fromRGB(125, 205, 150)
+					end
+				end)
+			end
+		end
+	end)
 end)
 
 local function rightShiftAction(_, inputState)
