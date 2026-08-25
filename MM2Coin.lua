@@ -2511,7 +2511,10 @@ function funcs.GetServers(order)
     local placeId = game.PlaceId
     local cursor = ""
     local selectedServer = nil
-    local value = order == "Asc" and math.huge or -1
+    local value =
+        order == "Asc"
+        and math.huge
+        or -1
 
     for i = 1, 3 do
 
@@ -2532,7 +2535,10 @@ function funcs.GetServers(order)
         end)
 
         if not success then
-            Library:Notify("Could not fetch servers!", 3)
+            Library:Notify(
+                "Could not fetch servers!",
+                3
+            )
             return
         end
 
@@ -2541,28 +2547,47 @@ function funcs.GetServers(order)
             return HttpService:JSONDecode(response)
         end)
 
-        if not decodeSuccess or not data then
-            Library:Notify("Could not decode server data!", 3)
+        if not decodeSuccess
+            or not data
+            or not data.data
+        then
+            Library:Notify(
+                "Could not decode server data!",
+                3
+            )
             return
         end
 
 
         for _, server in ipairs(data.data) do
 
-            if server.playing < server.maxPlayers then
+            if server.playing
+                and server.maxPlayers
+                and server.playing < server.maxPlayers
+            then
 
                 if order == "Asc" then
 
                     if server.playing < value then
-                        value = server.playing
-                        selectedServer = server
+
+                        value =
+                            server.playing
+
+                        selectedServer =
+                            server
+
                     end
 
                 else
 
                     if server.playing > value then
-                        value = server.playing
-                        selectedServer = server
+
+                        value =
+                            server.playing
+
+                        selectedServer =
+                            server
+
                     end
 
                 end
@@ -2572,7 +2597,8 @@ function funcs.GetServers(order)
         end
 
 
-        cursor = data.nextPageCursor
+        cursor =
+            data.nextPageCursor
 
         if not cursor then
             break
@@ -2591,6 +2617,9 @@ end
 
 function funcs.JoinSmallestServer()
 
+    local TeleportService =
+        game:GetService("TeleportService")
+
     local server =
         funcs.GetServers("Asc")
 
@@ -2599,7 +2628,7 @@ function funcs.JoinSmallestServer()
         TeleportService:TeleportToPlaceInstance(
             game.PlaceId,
             server.id,
-            Players.LocalPlayer
+            Services.LocalPlayer
         )
 
     else
@@ -2612,6 +2641,7 @@ function funcs.JoinSmallestServer()
     end
 
 end
+
 
 
 
@@ -2671,6 +2701,11 @@ task.spawn(function()
 
                     State.CoinServerHop = true
 
+                    Library:Notify(
+                        "40 coins reached!",
+                        3
+                    )
+
                     if queue_on_teleport then
 
                         queue_on_teleport([[
@@ -2690,6 +2725,7 @@ task.spawn(function()
     end
 
 end)
+
 
 
 
