@@ -2615,32 +2615,116 @@ end
 
 
 
-function funcs.JoinSmallestServer()
+function funcs.ServerHop()
+
+    local HttpService =
+        game:GetService("HttpService")
 
     local TeleportService =
         game:GetService("TeleportService")
 
-    local server =
-        funcs.GetServers("Asc")
+    local Players =
+        game:GetService("Players")
 
-    if server then
+
+    local placeId =
+        game.PlaceId
+
+
+    local url =
+        "https://games.roblox.com/v1/games/"
+        .. placeId
+        .. "/servers/Public?sortOrder=Asc&limit=100"
+
+
+    local success, response =
+        pcall(function()
+            return game:HttpGet(url)
+        end)
+
+
+    if not success then
+
+        Library:Notify(
+            "Failed to get servers!",
+            3
+        )
+
+        return
+
+    end
+
+
+    local decodeSuccess, data =
+        pcall(function()
+            return HttpService:JSONDecode(response)
+        end)
+
+
+    if not decodeSuccess
+        or not data
+        or not data.data
+    then
+
+        Library:Notify(
+            "Failed to decode servers!",
+            3
+        )
+
+        return
+
+    end
+
+
+    local servers = {}
+
+
+    for _, server in ipairs(data.data) do
+
+        if server.id ~= game.JobId
+            and server.playing
+            and server.maxPlayers
+            and server.playing < server.maxPlayers
+        then
+
+            table.insert(
+                servers,
+                server
+            )
+
+        end
+
+    end
+
+
+    if #servers > 0 then
+
+        local randomServer =
+            servers[
+                math.random(
+                    1,
+                    #servers
+                )
+            ]
+
 
         TeleportService:TeleportToPlaceInstance(
-            game.PlaceId,
-            server.id,
-            Services.LocalPlayer
+            placeId,
+            randomServer.id,
+            Players.LocalPlayer
         )
 
     else
 
         Library:Notify(
-            "Server Not Found!",
+            "No server found!",
             3
         )
 
     end
 
 end
+
 
 
 
@@ -2714,7 +2798,7 @@ task.spawn(function()
 
                     end
 
-                    funcs.JoinSmallestServer()
+                    funcs.ServerHop()
 
                 end
 
