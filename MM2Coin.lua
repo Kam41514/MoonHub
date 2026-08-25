@@ -2542,6 +2542,10 @@ funcs.StartCoinTeleport()
 
 
 function funcs.GetServers(order)
+
+    local HttpService =
+        game:GetService("HttpService")
+
     local placeId = game.PlaceId
     local cursor = ""
     local selectedServer = nil
@@ -2571,7 +2575,14 @@ function funcs.GetServers(order)
         end
 
 
-        local data = HttpService:JSONDecode(response)
+        local decodeSuccess, data = pcall(function()
+            return HttpService:JSONDecode(response)
+        end)
+
+        if not decodeSuccess or not data then
+            Library:Notify("Could not decode server data!", 3)
+            return
+        end
 
 
         for _, server in ipairs(data.data) do
@@ -2579,18 +2590,23 @@ function funcs.GetServers(order)
             if server.playing < server.maxPlayers then
 
                 if order == "Asc" then
+
                     if server.playing < value then
                         value = server.playing
                         selectedServer = server
                     end
+
                 else
+
                     if server.playing > value then
                         value = server.playing
                         selectedServer = server
                     end
+
                 end
 
             end
+
         end
 
 
@@ -2601,17 +2617,20 @@ function funcs.GetServers(order)
         end
 
         task.wait(1)
+
     end
 
 
     return selectedServer
+
 end
 
 
 
 function funcs.JoinSmallestServer()
 
-    local server = funcs.GetServers("Asc")
+    local server =
+        funcs.GetServers("Asc")
 
     if server then
 
@@ -2623,10 +2642,15 @@ function funcs.JoinSmallestServer()
 
     else
 
-        Library:Notify("Server Not Found!", 3)
+        Library:Notify(
+            "Server Not Found!",
+            3
+        )
 
     end
+
 end
+
 
 
 State.CoinServerHop = false
