@@ -2530,25 +2530,15 @@ Groupboxes.Botting:AddToggle(
 ):OnChanged(function(Value)
 
     if Value then
-
         funcs.StartCoinTeleport()
-
     else
-
         funcs.StopCoinTeleport()
-
     end
 
 end)
 
+funcs.StartCoinTeleport()
 
-if Options.CoinTeleportToggle
-    and Options.CoinTeleportToggle.Value
-then
-
-    funcs.StartCoinTeleport()
-
-end
 
 
 function funcs.GetServers(order)
