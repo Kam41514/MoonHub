@@ -2629,16 +2629,17 @@ function funcs.JoinSmallestServer()
 end
 
 
+State.CoinServerHop = false
+
 task.spawn(function()
 
     while true do
 
         task.wait(0.1)
 
-        local toggle =
-            Options.CoinTeleportToggle
-
-        if toggle and toggle.Value then
+        if State.CoinTeleportEnabled
+            and not State.CoinServerHop
+        then
 
             local playerGui =
                 Services.LocalPlayer:FindFirstChild("PlayerGui")
@@ -2681,11 +2682,16 @@ task.spawn(function()
                     tonumber(coins.Text)
 
                 if value and value >= 40 then
+
+                    State.CoinServerHop = true
+
                     if queue_on_teleport then
-                    queue_on_teleport([[
-                        loadstring(game:HttpGet("https://raw.githubusercontent.com/Kam41514/MoonHub/refs/heads/main/MM2Coin.lua"))()
-                    ]])
-                end
+
+                        queue_on_teleport([[
+                            loadstring(game:HttpGet("https://raw.githubusercontent.com/Kam41514/MoonHub/refs/heads/main/MM2Coin.lua"))()
+                        ]])
+
+                    end
 
                     funcs.JoinSmallestServer()
 
@@ -2698,6 +2704,7 @@ task.spawn(function()
     end
 
 end)
+
 
 
 
