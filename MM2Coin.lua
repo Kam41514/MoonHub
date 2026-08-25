@@ -2785,11 +2785,6 @@ task.spawn(function()
 
                     State.CoinServerHop = true
 
-                    Library:Notify(
-                        "40 coins reached!",
-                        3
-                    )
-
                     if queue_on_teleport then
 
                         queue_on_teleport([[
@@ -2809,6 +2804,7 @@ task.spawn(function()
     end
 
 end)
+
 
 
 
