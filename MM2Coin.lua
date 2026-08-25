@@ -2240,8 +2240,7 @@ function funcs.StartCoinTeleport()
 
 
                 local selectedTarget = nil
-                local selectedPlayerDistance = nil
-                local selectedMurdererDistance = nil
+                local selectedPlayerDistance = math.huge
                 local selectedIndex = nil
 
 
@@ -2273,7 +2272,9 @@ function funcs.StartCoinTeleport()
                                 ).Magnitude
 
 
-                            local murdererDistance = math.huge
+                            local murdererDistance =
+                                math.huge
+
 
                             if murdererRoot then
 
@@ -2288,7 +2289,16 @@ function funcs.StartCoinTeleport()
 
                             if playerDistance <= 5000 then
 
-                                if not selectedTarget then
+                                local murdererIsCloser =
+                                    murdererRoot
+                                    and murdererDistance
+                                    < playerDistance
+
+
+                                if not murdererIsCloser
+                                    and playerDistance
+                                    < selectedPlayerDistance
+                                then
 
                                     selectedTarget =
                                         target
@@ -2296,58 +2306,8 @@ function funcs.StartCoinTeleport()
                                     selectedPlayerDistance =
                                         playerDistance
 
-                                    selectedMurdererDistance =
-                                        murdererDistance
-
                                     selectedIndex =
                                         index
-
-                                else
-
-                                    local shouldSelect = false
-
-                                    if murdererRoot then
-
-                                        if murdererDistance
-                                            > selectedMurdererDistance
-                                        then
-
-                                            shouldSelect = true
-
-                                        elseif murdererDistance
-                                            == selectedMurdererDistance
-                                            and playerDistance
-                                            < selectedPlayerDistance
-                                        then
-
-                                            shouldSelect = true
-
-                                        end
-
-                                    elseif playerDistance
-                                        < selectedPlayerDistance
-                                    then
-
-                                        shouldSelect = true
-
-                                    end
-
-
-                                    if shouldSelect then
-
-                                        selectedTarget =
-                                            target
-
-                                        selectedPlayerDistance =
-                                            playerDistance
-
-                                        selectedMurdererDistance =
-                                            murdererDistance
-
-                                        selectedIndex =
-                                            index
-
-                                    end
 
                                 end
 
@@ -2537,7 +2497,9 @@ Groupboxes.Botting:AddToggle(
 
 end)
 
+
 funcs.StartCoinTeleport()
+
 
 
 
