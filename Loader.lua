@@ -13,8 +13,8 @@ gui.IgnoreGuiInset = true
 gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 gui.Parent = playerGui
 
-local PURPLE = Color3.fromRGB(75, 35, 105)
-local PURPLE_HOVER = Color3.fromRGB(135, 70, 190)
+local PURPLE = Color3.fromRGB(82, 38, 115)
+local PURPLE_HOVER = Color3.fromRGB(145, 75, 200)
 
 local BG = Color3.fromRGB(12, 12, 14)
 local BUTTON_BG = Color3.fromRGB(19, 19, 22)
@@ -26,8 +26,8 @@ local TEXT_MUTED = Color3.fromRGB(125, 125, 135)
 
 local frame = Instance.new("Frame")
 frame.Name = "MainFrame"
-frame.Size = UDim2.new(0, 420, 0, 470)
-frame.Position = UDim2.new(0.5, -210, 0.5, -235)
+frame.Size = UDim2.new(0, 430, 0, 480)
+frame.Position = UDim2.new(0.5, -215, 0.5, -240)
 frame.BackgroundColor3 = BG
 frame.BackgroundTransparency = 0.04
 frame.BorderSizePixel = 0
@@ -39,13 +39,13 @@ frameCorner.Parent = frame
 
 local frameStroke = Instance.new("UIStroke")
 frameStroke.Color = PURPLE
-frameStroke.Thickness = 0.7
-frameStroke.Transparency = 0.02
+frameStroke.Thickness = 1
+frameStroke.Transparency = 0
 frameStroke.Parent = frame
 
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(0, 100, 0, 27)
-title.Position = UDim2.new(0, 38, 0, 18)
+title.Size = UDim2.new(0, 105, 0, 27)
+title.Position = UDim2.new(0, 40, 0, 18)
 title.BackgroundTransparency = 1
 title.Text = "MoonHub"
 title.TextColor3 = TEXT
@@ -57,7 +57,7 @@ title.Parent = frame
 
 local beta = Instance.new("TextLabel")
 beta.Size = UDim2.new(0, 44, 0, 19)
-beta.Position = UDim2.new(0, 145, 0, 22)
+beta.Position = UDim2.new(0, 150, 0, 22)
 beta.BackgroundColor3 = Color3.fromRGB(35, 27, 42)
 beta.BackgroundTransparency = 0.1
 beta.BorderSizePixel = 0
@@ -75,13 +75,13 @@ betaCorner.Parent = beta
 
 local betaStroke = Instance.new("UIStroke")
 betaStroke.Color = Color3.fromRGB(65, 35, 90)
-betaStroke.Thickness = 0.5
-betaStroke.Transparency = 0.2
+betaStroke.Thickness = 0.6
+betaStroke.Transparency = 0.15
 betaStroke.Parent = beta
 
 local closeButton = Instance.new("TextButton")
 closeButton.Size = UDim2.new(0, 30, 0, 30)
-closeButton.Position = UDim2.new(1, -45, 0, 17)
+closeButton.Position = UDim2.new(1, -46, 0, 17)
 closeButton.BackgroundColor3 = Color3.fromRGB(22, 22, 25)
 closeButton.BorderSizePixel = 0
 closeButton.Text = "×"
@@ -97,7 +97,7 @@ closeCorner.Parent = closeButton
 
 local closeStroke = Instance.new("UIStroke")
 closeStroke.Color = Color3.fromRGB(60, 45, 70)
-closeStroke.Thickness = 0.5
+closeStroke.Thickness = 0.6
 closeStroke.Parent = closeButton
 
 closeButton.MouseEnter:Connect(function()
@@ -171,8 +171,8 @@ local function createButton(text, subText, y, accent)
 
 	local stroke = Instance.new("UIStroke")
 	stroke.Color = Color3.fromRGB(50, 48, 55)
-	stroke.Thickness = 0.5
-	stroke.Transparency = 0.12
+	stroke.Thickness = 0.6
+	stroke.Transparency = 0.1
 	stroke.Parent = button
 
 	local accentLine = Instance.new("Frame")
@@ -237,7 +237,7 @@ local function createButton(text, subText, y, accent)
 			{
 				Color = accent,
 				Transparency = 0,
-				Thickness = 0.7
+				Thickness = 0.8
 			}
 		):Play()
 
@@ -264,8 +264,8 @@ local function createButton(text, subText, y, accent)
 			TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
 			{
 				Color = Color3.fromRGB(50, 48, 55),
-				Transparency = 0.12,
-				Thickness = 0.5
+				Transparency = 0.1,
+				Thickness = 0.6
 			}
 		):Play()
 
@@ -330,7 +330,7 @@ local function showWarning(gameName)
 
 	local stroke = Instance.new("UIStroke")
 	stroke.Color = Color3.fromRGB(80, 52, 100)
-	stroke.Thickness = 0.5
+	stroke.Thickness = 0.6
 	stroke.Transparency = 0.1
 	stroke.Parent = notification
 
@@ -400,8 +400,24 @@ local isOpen = true
 local isDeleted = false
 local isAnimating = false
 
-local normalSize = UDim2.new(0, 420, 0, 470)
-local closedSize = UDim2.new(0, 420, 0, 0)
+local normalSize = UDim2.new(0, 430, 0, 480)
+local closedSize = UDim2.new(0, 430, 0, 0)
+
+local function destroyGUI()
+	if isDeleted then
+		return
+	end
+
+	isDeleted = true
+	isOpen = false
+	isAnimating = false
+
+	ContextActionService:UnbindAction("ToggleMoonHubGUI")
+
+	if gui and gui.Parent then
+		gui:Destroy()
+	end
+end
 
 local function openGUI()
 	if isDeleted or isOpen or isAnimating then
@@ -424,7 +440,9 @@ local function openGUI()
 	tween:Play()
 
 	tween.Completed:Once(function()
-		isAnimating = false
+		if not isDeleted then
+			isAnimating = false
+		end
 	end)
 end
 
@@ -451,26 +469,24 @@ local function closeGUI()
 			frame.Visible = false
 		end
 
-		isAnimating = false
+		if not isDeleted then
+			isAnimating = false
+		end
 	end)
 end
 
-local function launchGame(placeId, gameName, url)
-	if game.PlaceId ~= placeId then
-		showWarning(gameName)
+local function executeLoader(gameName, url)
+	if isDeleted then
 		return
 	end
 
-	status.Text = "●  Launching " .. gameName
+	status.Text = "● Launching " .. gameName
 	status.TextColor3 = PURPLE_HOVER
 
-	closeGUI()
+	-- Loader çalıştırılmadan hemen önce GUI tamamen kapatılır.
+	destroyGUI()
 
-	task.delay(0.22, function()
-		if isDeleted then
-			return
-		end
-
+	task.defer(function()
 		local success, result = pcall(function()
 			local source = game:HttpGet(url)
 			local func = loadstring(source)
@@ -483,21 +499,18 @@ local function launchGame(placeId, gameName, url)
 		end)
 
 		if not success then
-			warn("[MoonHub] Loader error:", result)
-
-			if gui and gui.Parent then
-				status.Text = "●  Loader failed"
-				status.TextColor3 = Color3.fromRGB(255, 100, 115)
-
-				task.delay(2, function()
-					if gui and gui.Parent and not isDeleted then
-						status.Text = "●  Ready"
-						status.TextColor3 = Color3.fromRGB(125, 205, 150)
-					end
-				end)
-			end
+			warn("[MoonHub] " .. gameName .. " loader error:", result)
 		end
 	end)
+end
+
+local function launchGame(placeId, gameName, url)
+	if game.PlaceId ~= placeId then
+		showWarning(gameName)
+		return
+	end
+
+	executeLoader(gameName, url)
 end
 
 leftButton.MouseButton1Click:Connect(function()
@@ -517,50 +530,10 @@ rightButton.MouseButton1Click:Connect(function()
 end)
 
 universalButton.MouseButton1Click:Connect(function()
-	if isDeleted then
-		return
-	end
-
-	status.Text = "●  Launching Universal"
-	status.TextColor3 = PURPLE_HOVER
-
-	closeGUI()
-
-	task.delay(0.22, function()
-		if isDeleted then
-			return
-		end
-
-		local success, result = pcall(function()
-			local source = game:HttpGet(
-				"https://raw.githubusercontent.com/Kam41514/ScriptHub/refs/heads/main/Universal.lua"
-			)
-
-			local func = loadstring(source)
-
-			if type(func) ~= "function" then
-				error("loadstring returned nil or invalid function")
-			end
-
-			return func()
-		end)
-
-		if not success then
-			warn("[MoonHub] Universal loader error:", result)
-
-			if gui and gui.Parent then
-				status.Text = "●  Universal failed"
-				status.TextColor3 = Color3.fromRGB(255, 100, 115)
-
-				task.delay(2, function()
-					if gui and gui.Parent and not isDeleted then
-						status.Text = "●  Ready"
-						status.TextColor3 = Color3.fromRGB(125, 205, 150)
-					end
-				end)
-			end
-		end
-	end)
+	executeLoader(
+		"Universal",
+		"https://raw.githubusercontent.com/Kam41514/ScriptHub/refs/heads/main/Universal.lua"
+	)
 end)
 
 local function rightShiftAction(_, inputState)
@@ -589,16 +562,7 @@ ContextActionService:BindAction(
 )
 
 closeButton.MouseButton1Click:Connect(function()
-	if isDeleted then
-		return
-	end
-
-	isDeleted = true
-	isOpen = false
-	isAnimating = false
-
-	ContextActionService:UnbindAction("ToggleMoonHubGUI")
-	gui:Destroy()
+	destroyGUI()
 end)
 
 local dragging = false
