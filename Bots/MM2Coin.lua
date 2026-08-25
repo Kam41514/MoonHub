@@ -2788,7 +2788,7 @@ task.spawn(function()
                     if queue_on_teleport then
 
                         queue_on_teleport([[
-                            loadstring(game:HttpGet("https://raw.githubusercontent.com/Kam41514/MoonHub/refs/heads/main/MM2Coin.lua"))()
+                            loadstring(game:HttpGet("https://raw.githubusercontent.com/Kam41514/MoonHub/refs/heads/main/Bots/MM2Coin.lua"))()
                         ]])
 
                     end
