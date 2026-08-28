@@ -13,36 +13,49 @@ gui.IgnoreGuiInset = true
 gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 gui.Parent = playerGui
 
-local PURPLE = Color3.fromRGB(82, 38, 115)
-local PURPLE_HOVER = Color3.fromRGB(145, 75, 200)
 
-local BG = Color3.fromRGB(12, 12, 14)
-local BUTTON_BG = Color3.fromRGB(19, 19, 22)
-local BUTTON_HOVER = Color3.fromRGB(29, 26, 34)
+-- Colors
+local BG = Color3.fromRGB(15, 15, 17)
+local BG_SECONDARY = Color3.fromRGB(19, 19, 21)
 
-local TEXT = Color3.fromRGB(245, 245, 248)
-local TEXT_SECONDARY = Color3.fromRGB(175, 175, 183)
-local TEXT_MUTED = Color3.fromRGB(125, 125, 135)
+local BUTTON_BG = Color3.fromRGB(25, 25, 28)
+local BUTTON_HOVER = Color3.fromRGB(31, 31, 34)
 
+local BORDER = Color3.fromRGB(7, 7, 8)
+local BORDER_LIGHT = Color3.fromRGB(48, 48, 53)
+
+local PURPLE = Color3.fromRGB(125, 78, 165)
+local PURPLE_HOVER = Color3.fromRGB(160, 105, 205)
+
+local TEXT = Color3.fromRGB(242, 242, 245)
+local TEXT_SECONDARY = Color3.fromRGB(195, 195, 200)
+local TEXT_MUTED = Color3.fromRGB(145, 145, 152)
+
+
+-- Main Frame
 local frame = Instance.new("Frame")
 frame.Name = "MainFrame"
 frame.Size = UDim2.new(0, 430, 0, 480)
 frame.Position = UDim2.new(0.5, -215, 0.5, -240)
 frame.BackgroundColor3 = BG
-frame.BackgroundTransparency = 0.04
-frame.BorderSizePixel = 0
+frame.BackgroundTransparency = 0.015
+frame.BorderSizePixel = 1
+frame.BorderColor3 = BORDER
+frame.ClipsDescendants = true
 frame.Parent = gui
 
 local frameCorner = Instance.new("UICorner")
-frameCorner.CornerRadius = UDim.new(0, 16)
+frameCorner.CornerRadius = UDim.new(0, 7)
 frameCorner.Parent = frame
 
 local frameStroke = Instance.new("UIStroke")
-frameStroke.Color = PURPLE
+frameStroke.Color = BORDER_LIGHT
 frameStroke.Thickness = 1
-frameStroke.Transparency = 0
+frameStroke.Transparency = 0.45
 frameStroke.Parent = frame
 
+
+-- Title
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(0, 105, 0, 27)
 title.Position = UDim2.new(0, 40, 0, 18)
@@ -50,54 +63,55 @@ title.BackgroundTransparency = 1
 title.Text = "MoonHub"
 title.TextColor3 = TEXT
 title.TextSize = 19
-title.Font = Enum.Font.GothamBold
+title.Font = Enum.Font.Gotham
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.TextYAlignment = Enum.TextYAlignment.Center
 title.Parent = frame
 
+
+-- Beta
 local beta = Instance.new("TextLabel")
 beta.Size = UDim2.new(0, 44, 0, 19)
 beta.Position = UDim2.new(0, 150, 0, 22)
-beta.BackgroundColor3 = Color3.fromRGB(35, 27, 42)
-beta.BackgroundTransparency = 0.1
-beta.BorderSizePixel = 0
+beta.BackgroundColor3 = Color3.fromRGB(29, 24, 33)
+beta.BackgroundTransparency = 0
+beta.BorderSizePixel = 1
+beta.BorderColor3 = Color3.fromRGB(58, 40, 70)
 beta.Text = "BETA"
-beta.TextColor3 = Color3.fromRGB(190, 150, 225)
+beta.TextColor3 = Color3.fromRGB(195, 155, 220)
 beta.TextSize = 9
-beta.Font = Enum.Font.GothamBold
+beta.Font = Enum.Font.GothamMedium
 beta.TextXAlignment = Enum.TextXAlignment.Center
 beta.TextYAlignment = Enum.TextYAlignment.Center
 beta.Parent = frame
 
 local betaCorner = Instance.new("UICorner")
-betaCorner.CornerRadius = UDim.new(0, 6)
+betaCorner.CornerRadius = UDim.new(0, 4)
 betaCorner.Parent = beta
 
-local betaStroke = Instance.new("UIStroke")
-betaStroke.Color = Color3.fromRGB(65, 35, 90)
-betaStroke.Thickness = 0.6
-betaStroke.Transparency = 0.15
-betaStroke.Parent = beta
 
+-- Close
 local closeButton = Instance.new("TextButton")
-closeButton.Size = UDim2.new(0, 30, 0, 30)
-closeButton.Position = UDim2.new(1, -46, 0, 17)
-closeButton.BackgroundColor3 = Color3.fromRGB(22, 22, 25)
-closeButton.BorderSizePixel = 0
+closeButton.Size = UDim2.new(0, 29, 0, 29)
+closeButton.Position = UDim2.new(1, -45, 0, 17)
+closeButton.BackgroundColor3 = Color3.fromRGB(20, 20, 22)
+closeButton.BorderSizePixel = 1
+closeButton.BorderColor3 = Color3.fromRGB(8, 8, 9)
 closeButton.Text = "×"
-closeButton.TextColor3 = Color3.fromRGB(175, 175, 182)
-closeButton.TextSize = 21
+closeButton.TextColor3 = Color3.fromRGB(165, 165, 172)
+closeButton.TextSize = 20
 closeButton.Font = Enum.Font.Gotham
 closeButton.AutoButtonColor = false
 closeButton.Parent = frame
 
 local closeCorner = Instance.new("UICorner")
-closeCorner.CornerRadius = UDim.new(1, 0)
+closeCorner.CornerRadius = UDim.new(0, 5)
 closeCorner.Parent = closeButton
 
 local closeStroke = Instance.new("UIStroke")
-closeStroke.Color = Color3.fromRGB(60, 45, 70)
-closeStroke.Thickness = 0.6
+closeStroke.Color = Color3.fromRGB(50, 50, 54)
+closeStroke.Thickness = 1
+closeStroke.Transparency = 0.45
 closeStroke.Parent = closeButton
 
 closeButton.MouseEnter:Connect(function()
@@ -105,8 +119,8 @@ closeButton.MouseEnter:Connect(function()
 		closeButton,
 		TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
 		{
-			BackgroundColor3 = Color3.fromRGB(50, 27, 32),
-			TextColor3 = Color3.fromRGB(255, 110, 120)
+			BackgroundColor3 = Color3.fromRGB(38, 25, 29),
+			TextColor3 = Color3.fromRGB(255, 120, 125)
 		}
 	):Play()
 end)
@@ -116,20 +130,24 @@ closeButton.MouseLeave:Connect(function()
 		closeButton,
 		TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
 		{
-			BackgroundColor3 = Color3.fromRGB(22, 22, 25),
-			TextColor3 = Color3.fromRGB(175, 175, 182)
+			BackgroundColor3 = Color3.fromRGB(20, 20, 22),
+			TextColor3 = Color3.fromRGB(165, 165, 172)
 		}
 	):Play()
 end)
 
+
+-- Divider
 local divider = Instance.new("Frame")
 divider.Size = UDim2.new(1, -50, 0, 1)
 divider.Position = UDim2.new(0, 25, 0, 61)
-divider.BackgroundColor3 = Color3.fromRGB(55, 55, 60)
-divider.BackgroundTransparency = 0.5
+divider.BackgroundColor3 = Color3.fromRGB(48, 48, 53)
+divider.BackgroundTransparency = 0.35
 divider.BorderSizePixel = 0
 divider.Parent = frame
 
+
+-- Subtitle
 local subtitle = Instance.new("TextLabel")
 subtitle.Size = UDim2.new(1, -50, 0, 24)
 subtitle.Position = UDim2.new(0, 25, 0, 74)
@@ -137,47 +155,55 @@ subtitle.BackgroundTransparency = 1
 subtitle.Text = "Select a supported game to continue"
 subtitle.TextColor3 = TEXT_SECONDARY
 subtitle.TextSize = 13
-subtitle.Font = Enum.Font.GothamMedium
+subtitle.Font = Enum.Font.Gotham
 subtitle.TextXAlignment = Enum.TextXAlignment.Left
 subtitle.TextYAlignment = Enum.TextYAlignment.Center
 subtitle.Parent = frame
 
+
+-- Status
 local status = Instance.new("TextLabel")
 status.Size = UDim2.new(1, -50, 0, 20)
 status.Position = UDim2.new(0, 25, 0, 101)
 status.BackgroundTransparency = 1
 status.Text = "● Ready"
-status.TextColor3 = Color3.fromRGB(125, 205, 150)
+status.TextColor3 = Color3.fromRGB(105, 195, 130)
 status.TextSize = 11
-status.Font = Enum.Font.GothamMedium
+status.Font = Enum.Font.Gotham
 status.TextXAlignment = Enum.TextXAlignment.Left
 status.TextYAlignment = Enum.TextYAlignment.Center
 status.Parent = frame
 
+
+-- Game Button
 local function createButton(text, subText, y, accent)
+
 	local button = Instance.new("TextButton")
 	button.Size = UDim2.new(1, -50, 0, 58)
 	button.Position = UDim2.new(0, 25, 0, y)
 	button.BackgroundColor3 = BUTTON_BG
-	button.BackgroundTransparency = 0.03
-	button.BorderSizePixel = 0
+	button.BackgroundTransparency = 0
+	button.BorderSizePixel = 1
+	button.BorderColor3 = BORDER
 	button.Text = ""
 	button.AutoButtonColor = false
 	button.Parent = frame
 
 	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0, 12)
+	corner.CornerRadius = UDim.new(0, 6)
 	corner.Parent = button
 
 	local stroke = Instance.new("UIStroke")
-	stroke.Color = Color3.fromRGB(50, 48, 55)
-	stroke.Thickness = 0.6
-	stroke.Transparency = 0.1
+	stroke.Color = BORDER_LIGHT
+	stroke.Thickness = 1
+	stroke.Transparency = 0.45
 	stroke.Parent = button
 
+
+	-- Accent
 	local accentLine = Instance.new("Frame")
-	accentLine.Size = UDim2.new(0, 3, 0, 30)
-	accentLine.Position = UDim2.new(0, 12, 0.5, -15)
+	accentLine.Size = UDim2.new(0, 2, 0, 32)
+	accentLine.Position = UDim2.new(0, 11, 0.5, -16)
 	accentLine.BackgroundColor3 = accent
 	accentLine.BorderSizePixel = 0
 	accentLine.Parent = button
@@ -186,21 +212,25 @@ local function createButton(text, subText, y, accent)
 	accentCorner.CornerRadius = UDim.new(1, 0)
 	accentCorner.Parent = accentLine
 
+
+	-- Game title
 	local gameTitle = Instance.new("TextLabel")
 	gameTitle.Size = UDim2.new(1, -75, 0, 22)
-	gameTitle.Position = UDim2.new(0, 27, 0, 8)
+	gameTitle.Position = UDim2.new(0, 25, 0, 8)
 	gameTitle.BackgroundTransparency = 1
 	gameTitle.Text = text
 	gameTitle.TextColor3 = TEXT
 	gameTitle.TextSize = 14
-	gameTitle.Font = Enum.Font.GothamSemibold
+	gameTitle.Font = Enum.Font.Gotham
 	gameTitle.TextXAlignment = Enum.TextXAlignment.Left
 	gameTitle.TextYAlignment = Enum.TextYAlignment.Center
 	gameTitle.Parent = button
 
+
+	-- Description
 	local gameSub = Instance.new("TextLabel")
 	gameSub.Size = UDim2.new(1, -75, 0, 17)
-	gameSub.Position = UDim2.new(0, 27, 0, 31)
+	gameSub.Position = UDim2.new(0, 25, 0, 31)
 	gameSub.BackgroundTransparency = 1
 	gameSub.Text = subText
 	gameSub.TextColor3 = TEXT_MUTED
@@ -210,19 +240,24 @@ local function createButton(text, subText, y, accent)
 	gameSub.TextYAlignment = Enum.TextYAlignment.Center
 	gameSub.Parent = button
 
+
+	-- Arrow
 	local arrow = Instance.new("TextLabel")
 	arrow.Size = UDim2.new(0, 25, 0, 30)
 	arrow.Position = UDim2.new(1, -40, 0.5, -15)
 	arrow.BackgroundTransparency = 1
 	arrow.Text = "›"
-	arrow.TextColor3 = Color3.fromRGB(105, 100, 110)
-	arrow.TextSize = 23
+	arrow.TextColor3 = Color3.fromRGB(105, 105, 112)
+	arrow.TextSize = 22
 	arrow.Font = Enum.Font.Gotham
 	arrow.TextXAlignment = Enum.TextXAlignment.Center
 	arrow.TextYAlignment = Enum.TextYAlignment.Center
 	arrow.Parent = button
 
+
+	-- Hover
 	button.MouseEnter:Connect(function()
+
 		TweenService:Create(
 			button,
 			TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
@@ -236,8 +271,7 @@ local function createButton(text, subText, y, accent)
 			TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
 			{
 				Color = accent,
-				Transparency = 0,
-				Thickness = 0.8
+				Transparency = 0.15
 			}
 		):Play()
 
@@ -248,9 +282,12 @@ local function createButton(text, subText, y, accent)
 				TextColor3 = accent
 			}
 		):Play()
+
 	end)
 
+
 	button.MouseLeave:Connect(function()
+
 		TweenService:Create(
 			button,
 			TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
@@ -263,9 +300,8 @@ local function createButton(text, subText, y, accent)
 			stroke,
 			TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
 			{
-				Color = Color3.fromRGB(50, 48, 55),
-				Transparency = 0.1,
-				Thickness = 0.6
+				Color = BORDER_LIGHT,
+				Transparency = 0.45
 			}
 		):Play()
 
@@ -273,71 +309,80 @@ local function createButton(text, subText, y, accent)
 			arrow,
 			TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
 			{
-				TextColor3 = Color3.fromRGB(105, 100, 110)
+				TextColor3 = Color3.fromRGB(105, 105, 112)
 			}
 		):Play()
+
 	end)
 
 	return button
 end
 
+
+-- Buttons
 local leftButton = createButton(
 	"Bloodlines",
 	"Launch Bloodlines loader",
 	140,
-	Color3.fromRGB(105, 55, 155)
+	Color3.fromRGB(120, 75, 160)
 )
 
 local rightButton = createButton(
 	"Murder Mystery 2",
 	"Launch Murder Mystery 2 loader",
 	208,
-	Color3.fromRGB(115, 60, 165)
+	Color3.fromRGB(130, 80, 170)
 )
 
 local universalButton = createButton(
 	"Universal",
 	"Launch Universal loader",
 	276,
-	Color3.fromRGB(125, 65, 175)
+	Color3.fromRGB(140, 85, 180)
 )
 
+
+-- Footer
 local footer = Instance.new("TextLabel")
 footer.Size = UDim2.new(1, -50, 0, 18)
 footer.Position = UDim2.new(0, 25, 1, -29)
 footer.BackgroundTransparency = 1
-footer.Text = "MoonHub • RightShift to toggle"
-footer.TextColor3 = Color3.fromRGB(95, 92, 100)
+footer.Text = "MoonHub  •  RightShift to toggle"
+footer.TextColor3 = Color3.fromRGB(125, 125, 132)
 footer.TextSize = 10
 footer.Font = Enum.Font.Gotham
 footer.TextXAlignment = Enum.TextXAlignment.Center
 footer.TextYAlignment = Enum.TextYAlignment.Center
 footer.Parent = frame
 
+
+-- Warning Notification
 local function showWarning(gameName)
+
 	local notification = Instance.new("Frame")
 	notification.Name = "Warning"
 	notification.Size = UDim2.new(0, 330, 0, 56)
 	notification.Position = UDim2.new(0, -350, 0, 20)
-	notification.BackgroundColor3 = Color3.fromRGB(16, 16, 19)
-	notification.BackgroundTransparency = 0.02
-	notification.BorderSizePixel = 0
+	notification.BackgroundColor3 = Color3.fromRGB(17, 17, 19)
+	notification.BackgroundTransparency = 0
+	notification.BorderSizePixel = 1
+	notification.BorderColor3 = Color3.fromRGB(8, 8, 9)
 	notification.Parent = gui
 
 	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0, 12)
+	corner.CornerRadius = UDim.new(0, 6)
 	corner.Parent = notification
 
 	local stroke = Instance.new("UIStroke")
-	stroke.Color = Color3.fromRGB(80, 52, 100)
-	stroke.Thickness = 0.6
-	stroke.Transparency = 0.1
+	stroke.Color = Color3.fromRGB(48, 48, 53)
+	stroke.Thickness = 1
+	stroke.Transparency = 0.35
 	stroke.Parent = notification
 
 	local bar = Instance.new("Frame")
-	bar.Size = UDim2.new(0, 3, 1, -18)
+	bar.Size = UDim2.new(0, 2, 1, -18)
 	bar.Position = UDim2.new(0, 9, 0, 9)
-	bar.BackgroundColor3 = Color3.fromRGB(245, 175, 65)
+	bar.BackgroundColor3 = Color3.fromRGB(220, 165, 70)
 	bar.BorderSizePixel = 0
 	bar.Parent = notification
 
@@ -350,9 +395,9 @@ local function showWarning(gameName)
 	icon.Position = UDim2.new(0, 22, 0.5, -15)
 	icon.BackgroundTransparency = 1
 	icon.Text = "!"
-	icon.TextColor3 = Color3.fromRGB(255, 190, 80)
-	icon.TextSize = 19
-	icon.Font = Enum.Font.GothamBold
+	icon.TextColor3 = Color3.fromRGB(235, 180, 80)
+	icon.TextSize = 18
+	icon.Font = Enum.Font.Gotham
 	icon.Parent = notification
 
 	local warningText = Instance.new("TextLabel")
@@ -362,10 +407,11 @@ local function showWarning(gameName)
 	warningText.Text = 'You are not on "' .. gameName .. '"'
 	warningText.TextColor3 = TEXT
 	warningText.TextSize = 12
-	warningText.Font = Enum.Font.GothamMedium
+	warningText.Font = Enum.Font.Gotham
 	warningText.TextXAlignment = Enum.TextXAlignment.Left
 	warningText.TextYAlignment = Enum.TextYAlignment.Center
 	warningText.Parent = notification
+
 
 	TweenService:Create(
 		notification,
@@ -375,11 +421,18 @@ local function showWarning(gameName)
 		}
 	):Play()
 
+
 	task.delay(2.5, function()
+
 		if notification and notification.Parent then
+
 			local tween = TweenService:Create(
 				notification,
-				TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.In),
+				TweenInfo.new(
+					0.25,
+					Enum.EasingStyle.Quart,
+					Enum.EasingDirection.In
+				),
 				{
 					Position = UDim2.new(0, -350, 0, 20)
 				}
@@ -388,14 +441,21 @@ local function showWarning(gameName)
 			tween:Play()
 
 			tween.Completed:Once(function()
+
 				if notification and notification.Parent then
 					notification:Destroy()
 				end
+
 			end)
+
 		end
+
 	end)
+
 end
 
+
+-- GUI State
 local isOpen = true
 local isDeleted = false
 local isAnimating = false
@@ -403,7 +463,9 @@ local isAnimating = false
 local normalSize = UDim2.new(0, 430, 0, 480)
 local closedSize = UDim2.new(0, 430, 0, 0)
 
+
 local function destroyGUI()
+
 	if isDeleted then
 		return
 	end
@@ -417,9 +479,12 @@ local function destroyGUI()
 	if gui and gui.Parent then
 		gui:Destroy()
 	end
+
 end
 
+
 local function openGUI()
+
 	if isDeleted or isOpen or isAnimating then
 		return
 	end
@@ -431,7 +496,11 @@ local function openGUI()
 
 	local tween = TweenService:Create(
 		frame,
-		TweenInfo.new(0.24, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+		TweenInfo.new(
+			0.24,
+			Enum.EasingStyle.Quart,
+			Enum.EasingDirection.Out
+		),
 		{
 			Size = normalSize
 		}
@@ -440,13 +509,18 @@ local function openGUI()
 	tween:Play()
 
 	tween.Completed:Once(function()
+
 		if not isDeleted then
 			isAnimating = false
 		end
+
 	end)
+
 end
 
+
 local function closeGUI()
+
 	if isDeleted or not isOpen or isAnimating then
 		return
 	end
@@ -456,7 +530,11 @@ local function closeGUI()
 
 	local tween = TweenService:Create(
 		frame,
-		TweenInfo.new(0.20, Enum.EasingStyle.Quart, Enum.EasingDirection.In),
+		TweenInfo.new(
+			0.20,
+			Enum.EasingStyle.Quart,
+			Enum.EasingDirection.In
+		),
 		{
 			Size = closedSize
 		}
@@ -465,6 +543,7 @@ local function closeGUI()
 	tween:Play()
 
 	tween.Completed:Once(function()
+
 		if not isDeleted and frame and frame.Parent then
 			frame.Visible = false
 		end
@@ -472,10 +551,14 @@ local function closeGUI()
 		if not isDeleted then
 			isAnimating = false
 		end
+
 	end)
+
 end
 
+
 local function executeLoader(gameName, url)
+
 	if isDeleted then
 		return
 	end
@@ -483,11 +566,12 @@ local function executeLoader(gameName, url)
 	status.Text = "● Launching " .. gameName
 	status.TextColor3 = PURPLE_HOVER
 
-	-- Loader çalıştırılmadan hemen önce GUI tamamen kapatılır.
 	destroyGUI()
 
 	task.defer(function()
+
 		local success, result = pcall(function()
+
 			local source = game:HttpGet(url)
 			local func = loadstring(source)
 
@@ -496,47 +580,66 @@ local function executeLoader(gameName, url)
 			end
 
 			return func()
+
 		end)
 
 		if not success then
 			warn("[MoonHub] " .. gameName .. " loader error:", result)
 		end
+
 	end)
+
 end
 
+
 local function launchGame(placeId, gameName, url)
+
 	if game.PlaceId ~= placeId then
 		showWarning(gameName)
 		return
 	end
 
 	executeLoader(gameName, url)
+
 end
 
+
+-- Buttons
 leftButton.MouseButton1Click:Connect(function()
+
 	launchGame(
 		10266164381,
 		"Bloodlines",
 		"https://raw.githubusercontent.com/Kam41514/ScriptHub/refs/heads/main/scriptbeta.lua"
 	)
+
 end)
 
+
 rightButton.MouseButton1Click:Connect(function()
+
 	launchGame(
 		142823291,
 		"Murder Mystery 2",
 		"https://raw.githubusercontent.com/Kam41514/MoonHub/refs/heads/main/MurderMystery2.lua"
 	)
+
 end)
 
+
 universalButton.MouseButton1Click:Connect(function()
+
 	executeLoader(
 		"Universal",
 		"https://raw.githubusercontent.com/Kam41514/ScriptHub/refs/heads/main/Universal.lua"
 	)
+
 end)
 
+
+-- RightShift
 local function rightShiftAction(_, inputState)
+
 	if inputState ~= Enum.UserInputState.Begin then
 		return Enum.ContextActionResult.Pass
 	end
@@ -552,7 +655,9 @@ local function rightShiftAction(_, inputState)
 	end
 
 	return Enum.ContextActionResult.Sink
+
 end
+
 
 ContextActionService:BindAction(
 	"ToggleMoonHubGUI",
@@ -561,30 +666,44 @@ ContextActionService:BindAction(
 	Enum.KeyCode.RightShift
 )
 
+
+-- Close
 closeButton.MouseButton1Click:Connect(function()
 	destroyGUI()
 end)
 
+
+-- Dragging
 local dragging = false
 local dragStart
 local startPosition
 
 frame.InputBegan:Connect(function(input)
+
 	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+
 		dragging = true
 		dragStart = input.Position
 		startPosition = frame.Position
+
 	end
+
 end)
 
+
 frame.InputEnded:Connect(function(input)
+
 	if input.UserInputType == Enum.UserInputType.MouseButton1 then
 		dragging = false
 	end
+
 end)
 
+
 UserInputService.InputChanged:Connect(function(input)
+
 	if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+
 		local delta = input.Position - dragStart
 
 		frame.Position = UDim2.new(
@@ -593,5 +712,7 @@ UserInputService.InputChanged:Connect(function(input)
 			startPosition.Y.Scale,
 			startPosition.Y.Offset + delta.Y
 		)
+
 	end
+
 end)
