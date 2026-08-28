@@ -1,4 +1,3 @@
-```lua
 local Modules = loadstring(game:HttpGet("https://raw.githubusercontent.com/Kam41514/MoonHub/refs/heads/main/Updates/Updates.lua"))()
 
 local Players = game:GetService("Players")
@@ -232,8 +231,3 @@ for _, module in ipairs(Modules) do
 end
 
 return ScreenGui
-```
-
-Bu versiyonda özellikle **kart kenarlarını ve ana pencere border'ını neredeyse siyah** yaptım; içerideki koyu gri tonları ise birbirinden hafif ayrılacak şekilde bıraktım. `Added / Updated / Fixed` durumları da küçük ve temiz renkli yazılar olarak kalıyor.
-
-Ayrıca en sona `return ScreenGui` ekledim; böylece dışarıdan çağırdığında GUI referansını alıp gerektiğinde kapatabilirsin.
