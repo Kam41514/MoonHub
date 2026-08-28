@@ -1,4 +1,3 @@
-
 local Modules = loadstring(game:HttpGet(
     "https://raw.githubusercontent.com/Kam41514/MoonHub/refs/heads/main/Updates/Updates.lua"
 ))()
@@ -11,6 +10,7 @@ local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 local OldGui = PlayerGui:FindFirstChild("UpdatesGui")
+
 if OldGui then
     OldGui:Destroy()
 end
@@ -25,10 +25,11 @@ ScreenGui.Parent = PlayerGui
 
 
 -- Main
+
 local Main = Instance.new("Frame")
 Main.Name = "Main"
-Main.Size = UDim2.new(0, 560, 0, 440)
-Main.Position = UDim2.new(0.5, -280, 0.5, -220)
+Main.Size = UDim2.new(0, 560, 0, 455)
+Main.Position = UDim2.new(0.5, -280, 0.5, -227)
 Main.BackgroundColor3 = Color3.fromRGB(17, 17, 19)
 Main.BackgroundTransparency = 0.015
 Main.BorderSizePixel = 1
@@ -48,6 +49,7 @@ MainStroke.Parent = Main
 
 
 -- Header
+
 local Header = Instance.new("Frame")
 Header.Size = UDim2.new(1, -2, 0, 44)
 Header.Position = UDim2.new(0, 1, 0, 1)
@@ -61,6 +63,7 @@ HeaderCorner.Parent = Header
 
 
 -- Title
+
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -100, 1, 0)
 Title.Position = UDim2.new(0, 45, 0, 0)
@@ -75,6 +78,7 @@ Title.Parent = Header
 
 
 -- Close
+
 local Close = Instance.new("TextButton")
 Close.Size = UDim2.new(0, 27, 0, 27)
 Close.Position = UDim2.new(1, -38, 0, 8)
@@ -108,6 +112,7 @@ end)
 
 
 -- Header line
+
 local HeaderLine = Instance.new("Frame")
 HeaderLine.Size = UDim2.new(1, -28, 0, 1)
 HeaderLine.Position = UDim2.new(0, 14, 1, -1)
@@ -117,6 +122,7 @@ HeaderLine.Parent = Header
 
 
 -- Dragging
+
 local Dragging = false
 local DragStart
 local StartPosition
@@ -167,14 +173,16 @@ end)
 
 
 -- Content
+
 local Content = Instance.new("Frame")
-Content.Size = UDim2.new(1, -30, 1, -118)
+Content.Size = UDim2.new(1, -30, 1, -145)
 Content.Position = UDim2.new(0, 15, 0, 58)
 Content.BackgroundTransparency = 1
 Content.Parent = Main
 
 
 -- Modules panel
+
 local ModulesPanel = Instance.new("ScrollingFrame")
 ModulesPanel.Size = UDim2.new(1, 0, 1, 0)
 ModulesPanel.BackgroundColor3 = Color3.fromRGB(21, 21, 24)
@@ -224,6 +232,7 @@ Layout:GetPropertyChangedSignal(
 
 
 -- Status colors
+
 local StatusColors = {
 
     Added = {
@@ -255,6 +264,7 @@ local StatusColors = {
 
 
 -- Cards
+
 for Index, module in ipairs(Modules) do
 
     local Colors = StatusColors[module.Status] or {
@@ -286,6 +296,7 @@ for Index, module in ipairs(Modules) do
 
 
     -- Accent
+
     local Accent = Instance.new("Frame")
     Accent.Size = UDim2.new(0, 2, 0, 38)
     Accent.Position = UDim2.new(0, 0, 0.5, -19)
@@ -295,6 +306,7 @@ for Index, module in ipairs(Modules) do
 
 
     -- Module name
+
     local ModuleName = Instance.new("TextLabel")
     ModuleName.Size = UDim2.new(1, -160, 0, 25)
     ModuleName.Position = UDim2.new(0, 15, 0, 8)
@@ -309,6 +321,7 @@ for Index, module in ipairs(Modules) do
 
 
     -- Status
+
     local Status = Instance.new("TextLabel")
     Status.Size = UDim2.new(0, 115, 0, 22)
     Status.Position = UDim2.new(1, -128, 0, 9)
@@ -323,6 +336,7 @@ for Index, module in ipairs(Modules) do
 
 
     -- Description
+
     local Description = Instance.new("TextLabel")
     Description.Size = UDim2.new(1, -30, 0, 30)
     Description.Position = UDim2.new(0, 15, 0, 38)
@@ -338,6 +352,7 @@ for Index, module in ipairs(Modules) do
 
 
     -- Hover
+
     Card.MouseEnter:Connect(function()
 
         TweenService:Create(
@@ -368,34 +383,60 @@ end
 UpdateCanvas()
 
 
--- Footer
+-- Footer line
+
 local FooterLine = Instance.new("Frame")
 FooterLine.Size = UDim2.new(1, -30, 0, 1)
-FooterLine.Position = UDim2.new(0, 15, 1, -44)
+FooterLine.Position = UDim2.new(0, 15, 1, -66)
 FooterLine.BackgroundColor3 = Color3.fromRGB(50, 50, 54)
 FooterLine.BorderSizePixel = 0
 FooterLine.Parent = Main
 
 
+-- Footer
+
 local Footer = Instance.new("TextLabel")
-Footer.Size = UDim2.new(1, -30, 0, 28)
-Footer.Position = UDim2.new(0, 15, 1, -37)
+Footer.Size = UDim2.new(1, -30, 0, 22)
+Footer.Position = UDim2.new(0, 15, 1, -61)
 Footer.BackgroundTransparency = 1
 Footer.Text = "You can get latest version by using MoonHub loader"
-Footer.TextColor3 = Color3.fromRGB(165, 165, 170)
-Footer.TextSize = 12
+Footer.TextColor3 = Color3.fromRGB(185, 185, 191)
+Footer.TextSize = 13
 Footer.Font = Enum.Font.SourceSans
 Footer.TextXAlignment = Enum.TextXAlignment.Center
 Footer.TextYAlignment = Enum.TextYAlignment.Center
 Footer.Parent = Main
 
 
+-- Last Update
+
+local LastUpdate = Instance.new("TextLabel")
+LastUpdate.Size = UDim2.new(1, -30, 0, 24)
+LastUpdate.Position = UDim2.new(0, 15, 1, -34)
+LastUpdate.BackgroundTransparency = 1
+
+local LastUpdateValue = Modules.LastUpdate
+
+if LastUpdateValue == nil then
+    LastUpdateValue = "Unknown"
+end
+
+LastUpdate.Text = "Last Update: " .. tostring(LastUpdateValue)
+LastUpdate.TextColor3 = Color3.fromRGB(145, 145, 152)
+LastUpdate.TextSize = 13
+LastUpdate.Font = Enum.Font.SourceSans
+LastUpdate.TextXAlignment = Enum.TextXAlignment.Center
+LastUpdate.TextYAlignment = Enum.TextYAlignment.Center
+LastUpdate.Parent = Main
+
+
 -- Open animation
+
 local TargetSize = Main.Size
 local TargetPosition = Main.Position
 
-Main.Size = UDim2.new(0, 540, 0, 420)
-Main.Position = UDim2.new(0.5, -270, 0.5, -210)
+Main.Size = UDim2.new(0, 540, 0, 430)
+Main.Position = UDim2.new(0.5, -270, 0.5, -215)
 Main.BackgroundTransparency = 1
 
 TweenService:Create(
