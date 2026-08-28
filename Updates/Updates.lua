@@ -36,6 +36,11 @@ local Modules = {
         Description = "Buggy but still works fine.",
         Status = "Beta"
     },
+    {
+        Name = "No Stun",
+        Description = "Changes the Value of Stunned but doesn't remove speed stun.",
+        Status = "Beta"
+    },
 }
 
 return Modules
