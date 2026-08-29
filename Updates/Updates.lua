@@ -1,5 +1,5 @@
 local Modules = {
-    LastUpdate = "August 28, 2026",
+    LastUpdate = "August 29, 2026",
 
     {
         Name = "NoClip",
