@@ -10,7 +10,7 @@ local Modules = {
     {
         Name = "ESP",
         Description = "Showing closest player locations based on Chakra Points.",
-        Status = "Added"
+        Status = "Updated"
     },
 
     {
@@ -46,6 +46,26 @@ local Modules = {
     {
         Name = "No Stun",
         Description = "Changes the Value of Stunned but doesn't remove speed stun.",
+        Status = "Beta"
+    },
+    {
+        Name = "Identity Spoofer",
+        Description = "Only have hide hair and custom hud name function.",
+        Status = "Beta"
+    },
+    {
+        Name = "Kick Yourself",
+        Description = "Kicks you from the game",
+        Status = "Added"
+    },
+    {
+        Name = "Server Hop",
+        Description = "Hopping server.",
+        Status = "Beta"
+    },
+    {
+        Name = "Quest Progression",
+        Description = "You can get any quest started.Idk if it's risky or not.",
         Status = "Beta"
     },
 }
