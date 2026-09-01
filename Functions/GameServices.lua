@@ -13,6 +13,7 @@ Services.PlayerScripts = Services.LocalPlayer:WaitForChild("PlayerScripts")
 
 Services.PlayerModule = require(Services.PlayerScripts:WaitForChild("PlayerModule"))
 Services.ControlModule = Services.PlayerModule:GetControls()
+Services.GameManager = require(Services.ReplicatedStorage:WaitForChild("GameManager"))
 
 local PlayerSettings = Services.ReplicatedStorage
     :WaitForChild("Settings")
