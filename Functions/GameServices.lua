@@ -9,11 +9,23 @@ local Services = setmetatable({}, {
 Services.Camera = workspace.CurrentCamera
 Services.LocalPlayer = Services.Players.LocalPlayer
 Services.Mouse = Services.LocalPlayer:GetMouse()
+
+Services.Character = Services.LocalPlayer.Character
+    or Services.LocalPlayer.CharacterAdded:Wait()
+
+Services.Humanoid = Services.Character:WaitForChild("Humanoid")
+
 Services.PlayerScripts = Services.LocalPlayer:WaitForChild("PlayerScripts")
 
-Services.PlayerModule = require(Services.PlayerScripts:WaitForChild("PlayerModule"))
+Services.PlayerModule = require(
+    Services.PlayerScripts:WaitForChild("PlayerModule")
+)
+
 Services.ControlModule = Services.PlayerModule:GetControls()
-Services.GameManager = require(Services.ReplicatedStorage:WaitForChild("GameManager"))
+
+Services.GameManager = require(
+    Services.ReplicatedStorage:WaitForChild("GameManager")
+)
 
 local PlayerSettings = Services.ReplicatedStorage
     :WaitForChild("Settings")
@@ -27,5 +39,10 @@ Services.Gripping = PlayerSettings:WaitForChild("Gripping")
 Services.Invincible = PlayerSettings:WaitForChild("Invincible")
 
 Services.PlayerGuiForName = Services.LocalPlayer:WaitForChild("PlayerGui")
+
+Services.LocalPlayer.CharacterAdded:Connect(function(Character)
+    Services.Character = Character
+    Services.Humanoid = Character:WaitForChild("Humanoid")
+end)
 
 return Services
