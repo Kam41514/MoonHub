@@ -37,6 +37,7 @@ Services.Jailed = PlayerSettings:WaitForChild("Jailed")
 Services.Knocked = PlayerSettings:WaitForChild("Knocked")
 Services.Gripping = PlayerSettings:WaitForChild("Gripping")
 Services.Invincible = PlayerSettings:WaitForChild("Invincible")
+Services.CanPerfectBlock = PlayerSettings:WaitForChild("canPerfectBlock")
 
 Services.PlayerGuiForName = Services.LocalPlayer:WaitForChild("PlayerGui")
 
