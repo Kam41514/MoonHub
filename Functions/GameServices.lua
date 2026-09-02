@@ -9,6 +9,7 @@ local Services = setmetatable({}, {
 Services.Camera = workspace.CurrentCamera
 Services.LocalPlayer = Services.Players.LocalPlayer
 Services.Mouse = Services.LocalPlayer:GetMouse()
+Services.Character = Services.Players.LocalPlayer.Character
 
 Services.Character = Services.LocalPlayer.Character
     or Services.LocalPlayer.CharacterAdded:Wait()
