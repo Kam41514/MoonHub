@@ -1737,9 +1737,6 @@ function funcs.QueueAutoExecute()
             task.wait()
         until game:IsLoaded()
 
-        getgenv().State = getgenv().State or {}
-        getgenv().State.AutoExecute = true
-
         if game.PlaceId == 10266164381 then
             local Source = game:HttpGet(
                 "https://raw.githubusercontent.com/Kam41514/MoonHub/refs/heads/main/10266164381.lua"
@@ -1758,6 +1755,12 @@ function funcs.QueueAutoExecute()
     print("[AutoExecute] Queue Added")
 end
 
+function funcs.ClearAutoExecute()
+    if type(clearqueueonteleport) == "function" then
+        clearqueueonteleport()
+        print("[AutoExecute] Queue Cleared")
+    end
+end
 
 Groupboxes.LibraryTab:AddToggle(
     "AutoExecute",
@@ -1770,12 +1773,15 @@ Groupboxes.LibraryTab:AddToggle(
 
             if Value then
                 funcs.QueueAutoExecute()
+            else
+                funcs.ClearAutoExecute()
             end
         end
     }
 )
 
 Toggles.AutoExecute:SetValue(true)
+
 
 Services.Players.PlayerAdded:Connect(function()
     task.wait(1)
