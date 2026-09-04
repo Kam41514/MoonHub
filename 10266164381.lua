@@ -1737,9 +1737,12 @@ function funcs.QueueAutoExecute()
             task.wait()
         until game:IsLoaded()
 
-        if game.PlaceId == 10266164381 then
+        if getgenv().State
+            and getgenv().State.AutoExecute
+            and game.PlaceId == 10266164381
+        then
             local Source = game:HttpGet(
-                "https://raw.githubusercontent.com/Kam41514/ScriptHub/refs/heads/main/scriptbeta.lua"
+                "https://raw.githubusercontent.com/Kam41514/MoonHub/refs/heads/main/10266164381.lua"
             )
 
             local Script, Error = loadstring(Source)
@@ -1772,9 +1775,6 @@ Groupboxes.LibraryTab:AddToggle(
 )
 
 Toggles.AutoExecute:SetValue(true)
-
-
-
 
 Services.Players.PlayerAdded:Connect(function()
     task.wait(1)
