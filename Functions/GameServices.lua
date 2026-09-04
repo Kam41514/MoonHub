@@ -39,7 +39,6 @@ Services.Knocked = PlayerSettings:WaitForChild("Knocked")
 Services.Gripping = PlayerSettings:WaitForChild("Gripping")
 Services.Invincible = PlayerSettings:WaitForChild("Invincible")
 Services.CanPerfectBlock = PlayerSettings:WaitForChild("canPerfectBlock")
-Services.Lifeforce = Services.ReplicatedStorage.LocalPlayer.PlayerGui.ClientGui.Mainframe.Loadout.HUD.LifeForce.LifeForce
 
 Services.PlayerGuiForName = Services.LocalPlayer:WaitForChild("PlayerGui")
 
