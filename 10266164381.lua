@@ -1185,7 +1185,7 @@ Modules.ServerHopToggle =
                                             serverTemplate,
                                             false
                                         ) then
-                                            task.wait(3)
+                                            task.wait(1)
                                             break
                                         end
                                     end
