@@ -735,9 +735,853 @@ Modules.InfiniteStamina =
     end)
 
 -- Player
+Groupboxes.PlayerESP = Tabs.Player:AddLeftGroupbox("Player ESP", "eye")
+Groupboxes.LeaderboardObserve = Tabs.Player:AddRightGroupbox("Leaderboard Settings", "list")
 Groupboxes.IdentitySpoofer = Tabs.Player:AddLeftGroupbox("Identity Spoofer", "scan-face")
 Groupboxes.ProximityDetector = Tabs.Player:AddRightGroupbox("Proximity Detector", "bot")
 Groupboxes.ExtrasPlayer = Tabs.Player:AddRightGroupbox("Extras", "user")
+
+State.ObserveEnabled = true
+State.CurrentObserveTarget = nil
+
+Services.Camera = workspace.CurrentCamera
+
+function funcs.getPlayerList()
+
+    local playerGui =
+        Services.LocalPlayer:FindFirstChild("PlayerGui")
+
+    if not playerGui then
+        return nil
+    end
+
+    local clientGui =
+        playerGui:FindFirstChild("ClientGui")
+
+    if not clientGui then
+        return nil
+    end
+
+    local mainframe =
+        clientGui:FindFirstChild("Mainframe")
+
+    if not mainframe then
+        return nil
+    end
+
+    local playerList =
+        mainframe:FindFirstChild("PlayerList")
+
+    if not playerList then
+        return nil
+    end
+
+    return playerList:FindFirstChild("List")
+end
+
+
+function funcs.resetCamera()
+
+    State.CurrentObserveTarget = nil
+
+    local camera =
+        workspace.CurrentCamera
+
+    if not camera then
+        return
+    end
+
+    local character =
+        Services.LocalPlayer.Character
+
+    local humanoid =
+        character
+        and character:FindFirstChildOfClass("Humanoid")
+
+    if humanoid then
+        camera.CameraSubject = humanoid
+    end
+end
+
+
+function funcs.clearObserveConnections()
+
+    for name in pairs(MainConnections) do
+
+        if string.sub(name, 1, 8) == "Observe_" then
+            ConnectionManager.Disconnect(name)
+        end
+
+    end
+
+end
+
+
+function funcs.setupPlayerTemplate(template)
+
+    if not template
+        or template.Name ~= "PlayerTemplate" then
+        return
+    end
+
+    local connectionName =
+        "Observe_Template_" .. tostring(template:GetDebugId())
+
+    ConnectionManager.Connect(
+        connectionName,
+        template.InputBegan,
+        function(input)
+
+            if not State.ObserveEnabled then
+                return
+            end
+
+            if input.UserInputType
+                ~= Enum.UserInputType.MouseButton2 then
+                return
+            end
+
+            local playerNameObject =
+                template:FindFirstChild("PlayerName")
+
+            if not playerNameObject then
+                return
+            end
+
+            local playerName =
+                playerNameObject.Text
+
+            if not playerName
+                or playerName == "" then
+                return
+            end
+
+            local target =
+                Services.Players:FindFirstChild(playerName)
+
+            if not target then
+                return
+            end
+
+            local character =
+                target.Character
+
+            if not character then
+                return
+            end
+
+            local humanoid =
+                character:FindFirstChildOfClass("Humanoid")
+
+            if not humanoid then
+                return
+            end
+
+            local camera =
+                workspace.CurrentCamera
+
+            if not camera then
+                return
+            end
+
+            if State.CurrentObserveTarget == target then
+
+                funcs.resetCamera()
+
+            else
+
+                State.CurrentObserveTarget =
+                    target
+
+                camera.CameraSubject =
+                    humanoid
+
+            end
+
+        end
+    )
+
+end
+
+
+function funcs.enableObserve()
+
+    if not State.ObserveEnabled then
+        return
+    end
+
+    funcs.clearObserveConnections()
+
+    local list =
+        funcs.getPlayerList()
+
+    if not list then
+        return
+    end
+
+    for _, template in ipairs(list:GetChildren()) do
+        funcs.setupPlayerTemplate(template)
+    end
+
+    ConnectionManager.Connect(
+        "Observe_PlayerListChildAdded",
+        list.ChildAdded,
+        function(child)
+
+            if not State.ObserveEnabled then
+                return
+            end
+
+            if child.Name ~= "PlayerTemplate" then
+                return
+            end
+
+            task.defer(function()
+
+                if State.ObserveEnabled
+                    and child.Parent == list then
+
+                    funcs.setupPlayerTemplate(child)
+
+                end
+
+            end)
+
+        end
+    )
+
+end
+
+
+Modules.ObserveToggle =
+    Groupboxes.LeaderboardObserve:AddToggle(
+        "ObserveToggle",
+        {
+            Text = "Leaderboard Observe",
+            Default = true
+        }
+    )
+
+
+Modules.ObserveToggle:OnChanged(function(value)
+
+    State.ObserveEnabled = value
+
+    if value then
+
+        funcs.enableObserve()
+
+    else
+
+        funcs.clearObserveConnections()
+        funcs.resetCamera()
+
+    end
+
+end)
+
+
+ConnectionManager.Connect(
+    "Observe_LocalCharacterAdded",
+    Services.LocalPlayer.CharacterAdded,
+    function(character)
+
+        State.CurrentObserveTarget = nil
+
+        local humanoid =
+            character:WaitForChild(
+                "Humanoid",
+                10
+            )
+
+        if humanoid then
+
+            local camera =
+                workspace.CurrentCamera
+
+            if camera then
+                camera.CameraSubject = humanoid
+            end
+
+        end
+
+        if State.ObserveEnabled then
+
+            task.wait(1)
+
+            if State.ObserveEnabled then
+                enableObserve()
+            end
+
+        end
+
+    end
+)
+
+
+local playerGui = Services.LocalPlayer:WaitForChild("PlayerGui")
+
+
+ConnectionManager.Connect(
+    "Observe_PlayerGuiChildAdded",
+    playerGui.ChildAdded,
+    function(child)
+
+        if child.Name ~= "ClientGui" then
+            return
+        end
+
+        if not State.ObserveEnabled then
+            return
+        end
+
+        task.wait(0.5)
+
+        if State.ObserveEnabled then
+            funcs.enableObserve()
+        end
+
+    end
+)
+
+
+ConnectionManager.Connect(
+    "Observe_PlayerAdded",
+    Services.Players.PlayerAdded,
+    function(player)
+
+        ConnectionManager.Connect(
+            "Observe_TargetCharacter_" .. player.UserId,
+            player.CharacterAdded,
+            function(character)
+
+                if not State.ObserveEnabled then
+                    return
+                end
+
+                if State.CurrentObserveTarget
+                    ~= player then
+                    return
+                end
+
+                local humanoid =
+                    character:WaitForChild(
+                        "Humanoid",
+                        10
+                    )
+
+                if not humanoid then
+                    return
+                end
+
+                local camera =
+                    workspace.CurrentCamera
+
+                if not camera then
+                    return
+                end
+
+                if State.CurrentObserveTarget
+                    == player then
+
+                    camera.CameraSubject =
+                        humanoid
+
+                end
+
+            end
+        )
+
+    end
+)
+
+
+ConnectionManager.Connect(
+    "Observe_PlayerRemoving",
+    Services.Players.PlayerRemoving,
+    function(player)
+
+        if State.CurrentObserveTarget
+            == player then
+
+            funcs.resetCamera()
+
+        end
+
+        ConnectionManager.Disconnect(
+            "Observe_TargetCharacter_" ..
+            player.UserId
+        )
+
+    end
+)
+
+
+for _, player in ipairs(
+    Services.Players:GetPlayers()
+) do
+
+    ConnectionManager.Connect(
+        "Observe_TargetCharacter_" .. player.UserId,
+        player.CharacterAdded,
+        function(character)
+
+            if not State.ObserveEnabled then
+                return
+            end
+
+            if State.CurrentObserveTarget
+                ~= player then
+                return
+            end
+
+            local humanoid =
+                character:WaitForChild(
+                    "Humanoid",
+                    10
+                )
+
+            if not humanoid then
+                return
+            end
+
+            local camera =
+                workspace.CurrentCamera
+
+            if camera then
+                camera.CameraSubject =
+                    humanoid
+            end
+
+        end
+    )
+
+end
+
+
+if State.ObserveEnabled then
+    task.defer(function()
+        Modules.ObserveToggle:SetValue(true)
+        funcs.enableObserve()
+    end)
+end
+
+State.PlayerESPObjects = State.PlayerESPObjects or {}
+
+State.PlayerESPEnabled = false
+State.PlayerESPShowLocation = true
+State.PlayerESPMaxDistance = 500
+
+State.ChakraPointsFolder = workspace:WaitForChild("ChakraPoints")
+
+
+function funcs.RemovePlayerESPFromPlayer(plr)
+    local data = State.PlayerESPObjects[plr]
+
+    if data then
+        if data.RenderConnectionName then
+            ConnectionManager.Disconnect(data.RenderConnectionName)
+        end
+
+        if data.Highlight then
+            data.Highlight:Destroy()
+        end
+
+        if data.Billboard then
+            data.Billboard:Destroy()
+        end
+
+        State.PlayerESPObjects[plr] = nil
+    end
+
+    ConnectionManager.Disconnect(
+        "PlayerESP_Character_" .. plr.UserId
+    )
+end
+
+
+function funcs.CreatePlayerESP(plr)
+    if plr == Services.LocalPlayer then
+        return
+    end
+
+    if State.PlayerESPObjects[plr] then
+        return
+    end
+
+function funcs.SetupCharacter(char)
+        if not State.PlayerESPEnabled then
+            return
+        end
+
+        local root =
+            char:WaitForChild(
+                "HumanoidRootPart",
+                5
+            )
+
+        local humanoid =
+            char:WaitForChild(
+                "Humanoid",
+                5
+            )
+
+        if not root or not humanoid then
+            return
+        end
+
+        local highlight =
+            Instance.new("Highlight")
+
+        highlight.Name = "PlayerESP"
+        highlight.FillTransparency = 1
+        highlight.OutlineTransparency = 0
+        highlight.OutlineColor =
+            Color3.fromRGB(255, 0, 0)
+
+        highlight.DepthMode =
+            Enum.HighlightDepthMode.AlwaysOnTop
+
+        highlight.Parent = char
+
+
+        local billboard =
+            Instance.new("BillboardGui")
+
+        billboard.Name = "PlayerESPText"
+
+        billboard.Size =
+            UDim2.new(0, 200, 0, 50)
+
+        billboard.StudsOffset =
+            Vector3.new(0, 3, 0)
+
+        billboard.AlwaysOnTop = true
+        billboard.Parent = root
+
+
+        local text =
+            Instance.new("TextLabel")
+
+        text.Size =
+            UDim2.new(1, 0, 1, 0)
+
+        text.BackgroundTransparency = 1
+        text.TextStrokeTransparency = 0
+        text.TextSize = 14
+
+        text.Font =
+            Enum.Font.SourceSansBold
+
+        text.TextColor3 =
+            Color3.fromRGB(255, 0, 0)
+
+        text.Parent = billboard
+
+
+        local renderConnectionName =
+            "PlayerESP_Render_" .. plr.UserId
+
+
+        ConnectionManager.Connect(
+            renderConnectionName,
+            Services.RunService.RenderStepped,
+            function()
+
+                if not State.PlayerESPEnabled then
+                    ConnectionManager.Disconnect(renderConnectionName)
+                    return
+                end
+
+                if not char.Parent then
+                    ConnectionManager.Disconnect(renderConnectionName)
+                    return
+                end
+
+                if humanoid.Health <= 0 then
+                    ConnectionManager.Disconnect(renderConnectionName)
+                    return
+                end
+
+
+                local localCharacter =
+                    Services.LocalPlayer.Character
+
+                local localRoot =
+                    localCharacter
+                    and localCharacter:FindFirstChild(
+                        "HumanoidRootPart"
+                    )
+
+
+                local distance = 0
+
+                if localRoot then
+                    distance =
+                        math.floor(
+                            (
+                                localRoot.Position
+                                - root.Position
+                            ).Magnitude
+                        )
+                end
+
+
+                if distance > State.PlayerESPMaxDistance then
+                    highlight.Enabled = false
+                    billboard.Enabled = false
+                    return
+                end
+
+
+                highlight.Enabled = true
+                billboard.Enabled = true
+
+
+                local nearestChakraPoint = nil
+                local nearestChakraDistance = math.huge
+
+
+                for _, chakraPoint in ipairs(
+                    State.ChakraPointsFolder:GetChildren()
+                ) do
+
+                    if chakraPoint.Name == "ChakraPoint" then
+
+                        local pointPart =
+                            chakraPoint.PrimaryPart
+                            or chakraPoint:FindFirstChildWhichIsA(
+                                "BasePart",
+                                true
+                            )
+
+                        if pointPart then
+
+                            local pointDistance =
+                                (
+                                    root.Position
+                                    - pointPart.Position
+                                ).Magnitude
+
+                            if pointDistance < nearestChakraDistance then
+                                nearestChakraDistance =
+                                    pointDistance
+
+                                nearestChakraPoint =
+                                    chakraPoint
+                            end
+                        end
+                    end
+                end
+
+
+                local pointName = ""
+
+
+                if State.PlayerESPShowLocation
+                    and nearestChakraPoint then
+
+                    local pointNameValue =
+                        nearestChakraPoint:FindFirstChild(
+                            "PointName",
+                            true
+                        )
+
+                    if pointNameValue
+                        and pointNameValue:IsA("StringValue") then
+
+                        pointName =
+                            "["
+                            .. pointNameValue.Value
+                            .. "]\n"
+                    end
+                end
+
+
+                text.Text =
+                    pointName
+                    .. plr.Name
+                    .. "\n❤ "
+                    .. math.floor(
+                        humanoid.Health
+                    )
+                    .. "/"
+                    .. math.floor(
+                        humanoid.MaxHealth
+                    )
+                    .. " | "
+                    .. distance
+                    .. " st"
+            end
+        )
+
+
+        State.PlayerESPObjects[plr] = {
+            Highlight = highlight,
+            Billboard = billboard,
+            RenderConnectionName =
+                renderConnectionName
+        }
+    end
+
+
+    if plr.Character then
+        funcs.SetupCharacter(plr.Character)
+    end
+
+
+    ConnectionManager.Connect(
+        "PlayerESP_Character_" .. plr.UserId,
+        plr.CharacterAdded,
+        function(char)
+
+            task.wait(1)
+
+            if not State.PlayerESPEnabled then
+                return
+            end
+
+
+            if State.PlayerESPObjects[plr] then
+
+                local old =
+                    State.PlayerESPObjects[plr]
+
+                if old.RenderConnectionName then
+                    ConnectionManager.Disconnect(
+                        old.RenderConnectionName
+                    )
+                end
+
+                if old.Highlight then
+                    old.Highlight:Destroy()
+                end
+
+                if old.Billboard then
+                    old.Billboard:Destroy()
+                end
+
+                State.PlayerESPObjects[plr] = nil
+            end
+
+
+            funcs.SetupCharacter(char)
+        end
+    )
+end
+
+
+function funcs.RemovePlayerESP()
+
+    for plr in pairs(
+        State.PlayerESPObjects
+    ) do
+
+        funcs.RemovePlayerESPFromPlayer(plr)
+    end
+
+
+    ConnectionManager.DisconnectPrefix(
+        "PlayerESP_Character_"
+    )
+end
+
+
+-- Player ESP
+Groupboxes.PlayerESP:AddToggle(
+    "PlayerESPToggle",
+    {
+        Text = "Player ESP",
+        Default = false
+    }
+):OnChanged(function(Value)
+
+    State.PlayerESPEnabled =
+        Value
+
+    if Value then
+
+        for _, plr in ipairs(
+            Services.Players:GetPlayers()
+        ) do
+
+            if plr ~= Services.LocalPlayer then
+                funcs.CreatePlayerESP(plr)
+            end
+        end
+
+
+        ConnectionManager.Connect(
+            "PlayerESP_PlayerAdded",
+            Services.Players.PlayerAdded,
+            function(plr)
+
+                if State.PlayerESPEnabled then
+                    funcs.CreatePlayerESP(plr)
+                end
+            end
+        )
+
+
+        ConnectionManager.Connect(
+            "PlayerESP_PlayerRemoving",
+            Services.Players.PlayerRemoving,
+            function(plr)
+
+                funcs.RemovePlayerESPFromPlayer(plr)
+
+                ConnectionManager.Disconnect(
+                    "PlayerESP_Character_"
+                    .. plr.UserId
+                )
+            end
+        )
+
+    else
+
+        ConnectionManager.Disconnect(
+            "PlayerESP_PlayerAdded"
+        )
+
+        ConnectionManager.Disconnect(
+            "PlayerESP_PlayerRemoving"
+        )
+
+        funcs.RemovePlayerESP()
+    end
+end)
+
+
+Groupboxes.PlayerESP:AddToggle(
+    "PlayerESPShowLocation",
+    {
+        Text = "Show Player Location",
+        Default = true
+    }
+):OnChanged(function(Value)
+
+    State.PlayerESPShowLocation =
+        Value
+end)
+
+
+-- ESP Distance
+Groupboxes.PlayerESP:AddSlider(
+    "PlayerESPDistance",
+    {
+        Text = "ESP Distance",
+        Default = 2000,
+        Min = 50,
+        Max = 15000,
+        Rounding = 0,
+        Compact = true,
+        Suffix = " st"
+    }
+):OnChanged(function(Value)
+
+    State.PlayerESPMaxDistance =
+        Value
+end)
 
 -- Scripts For Player Tab
 State.HUDPlayerName =
@@ -2649,8 +3493,10 @@ Groupboxes.LibraryTab:AddButton("Unload", function()
         State.FullBrightConnection = nil
     end
 
-
-
+        getgenv().State.AutoExecute = false
+        funcs.clearObserveConnections()
+        funcs.resetCamera()
+        funcs.RemovePlayerESP()
         funcs.RemoveAttachments("NoSlowdownVelocity")
         funcs.RemoveAttachments("NoSlowdownAttachment")
         ConnectionManager.DisconnectPrefix("SilentAim.")
