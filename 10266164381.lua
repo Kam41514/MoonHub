@@ -806,7 +806,7 @@ end
 
 function funcs.clearObserveConnections()
 
-    for name in pairs(MainConnections) do
+    for name in pairs(ConnectionManager.MainConnections) do
 
         if string.sub(name, 1, 8) == "Observe_" then
             ConnectionManager.Disconnect(name)
