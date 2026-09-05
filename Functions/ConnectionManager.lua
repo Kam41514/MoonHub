@@ -1,6 +1,8 @@
 local MainConnections = {}
 local funcs = {}
 
+funcs.MainConnections = MainConnections
+
 function funcs.Connect(name, signal, callback)
     if MainConnections[name] then
         MainConnections[name]:Disconnect()
