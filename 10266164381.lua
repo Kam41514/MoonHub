@@ -1166,21 +1166,26 @@ if State.ObserveEnabled then
     end)
 end
 
-State.PlayerESPObjects = State.PlayerESPObjects or {}
+State.PlayerESPObjects = {}
 
 State.PlayerESPEnabled = false
 State.PlayerESPShowLocation = true
-State.PlayerESPMaxDistance = 500
+State.PlayerESPMaxDistance = 2000
 
-State.ChakraPointsFolder = workspace:WaitForChild("ChakraPoints")
+State.ChakraPointsFolder =
+    workspace:WaitForChild("ChakraPoints")
 
 
 function funcs.RemovePlayerESPFromPlayer(plr)
+
     local data = State.PlayerESPObjects[plr]
 
     if data then
+
         if data.RenderConnectionName then
-            ConnectionManager.Disconnect(data.RenderConnectionName)
+            ConnectionManager.Disconnect(
+                data.RenderConnectionName
+            )
         end
 
         if data.Highlight then
@@ -1200,236 +1205,277 @@ function funcs.RemovePlayerESPFromPlayer(plr)
 end
 
 
+function funcs.SetupCharacter(plr, char)
+
+    if not State.PlayerESPEnabled then
+        return
+    end
+
+    if not plr or plr == Services.LocalPlayer then
+        return
+    end
+
+    if not char or not char.Parent then
+        return
+    end
+
+    local root =
+        char:WaitForChild(
+            "HumanoidRootPart",
+            5
+        )
+
+    local humanoid =
+        char:WaitForChild(
+            "Humanoid",
+            5
+        )
+
+    if not root or not humanoid then
+        return
+    end
+
+
+    -- Eski ESP varsa temizle
+    local old =
+        State.PlayerESPObjects[plr]
+
+    if old then
+
+        if old.RenderConnectionName then
+            ConnectionManager.Disconnect(
+                old.RenderConnectionName
+            )
+        end
+
+        if old.Highlight then
+            old.Highlight:Destroy()
+        end
+
+        if old.Billboard then
+            old.Billboard:Destroy()
+        end
+
+        State.PlayerESPObjects[plr] = nil
+    end
+
+
+    local highlight =
+        Instance.new("Highlight")
+
+    highlight.Name = "PlayerESP"
+    highlight.FillTransparency = 1
+    highlight.OutlineTransparency = 0
+    highlight.OutlineColor =
+        Color3.fromRGB(255, 0, 0)
+
+    highlight.DepthMode =
+        Enum.HighlightDepthMode.AlwaysOnTop
+
+    highlight.Parent = char
+
+
+    local billboard =
+        Instance.new("BillboardGui")
+
+    billboard.Name = "PlayerESPText"
+
+    billboard.Size =
+        UDim2.new(0, 200, 0, 50)
+
+    billboard.StudsOffset =
+        Vector3.new(0, 3, 0)
+
+    billboard.AlwaysOnTop = true
+    billboard.Parent = root
+
+
+    local text =
+        Instance.new("TextLabel")
+
+    text.Size =
+        UDim2.new(1, 0, 1, 0)
+
+    text.BackgroundTransparency = 1
+    text.TextStrokeTransparency = 0
+    text.TextSize = 14
+
+    text.Font =
+        Enum.Font.SourceSansBold
+
+    text.TextColor3 =
+        Color3.fromRGB(255, 0, 0)
+
+    text.Parent = billboard
+
+
+    local renderConnectionName =
+        "PlayerESP_Render_" .. plr.UserId
+
+
+    ConnectionManager.Connect(
+        renderConnectionName,
+        Services.RunService.RenderStepped,
+        function()
+
+            if not State.PlayerESPEnabled then
+                ConnectionManager.Disconnect(
+                    renderConnectionName
+                )
+                return
+            end
+
+            if not char.Parent then
+                ConnectionManager.Disconnect(
+                    renderConnectionName
+                )
+                return
+            end
+
+            if humanoid.Health <= 0 then
+                highlight.Enabled = false
+                billboard.Enabled = false
+                return
+            end
+
+
+            local localCharacter =
+                Services.LocalPlayer.Character
+
+            local localRoot =
+                localCharacter
+                and localCharacter:FindFirstChild(
+                    "HumanoidRootPart"
+                )
+
+
+            if not localRoot then
+                highlight.Enabled = false
+                billboard.Enabled = false
+                return
+            end
+
+
+            local distance =
+                math.floor(
+                    (
+                        localRoot.Position
+                        - root.Position
+                    ).Magnitude
+                )
+
+
+            if distance > State.PlayerESPMaxDistance then
+
+                highlight.Enabled = false
+                billboard.Enabled = false
+
+                return
+            end
+
+
+            highlight.Enabled = true
+            billboard.Enabled = true
+
+
+            local nearestChakraPoint = nil
+            local nearestChakraDistance = math.huge
+
+
+            for _, chakraPoint in ipairs(
+                State.ChakraPointsFolder:GetChildren()
+            ) do
+
+                if chakraPoint.Name == "ChakraPoint" then
+
+                    local pointPart =
+                        chakraPoint.PrimaryPart
+                        or chakraPoint:FindFirstChildWhichIsA(
+                            "BasePart",
+                            true
+                        )
+
+                    if pointPart then
+
+                        local pointDistance =
+                            (
+                                root.Position
+                                - pointPart.Position
+                            ).Magnitude
+
+                        if pointDistance < nearestChakraDistance then
+
+                            nearestChakraDistance =
+                                pointDistance
+
+                            nearestChakraPoint =
+                                chakraPoint
+                        end
+                    end
+                end
+            end
+
+
+            local pointName = ""
+
+
+            if State.PlayerESPShowLocation
+                and nearestChakraPoint then
+
+                local pointNameValue =
+                    nearestChakraPoint:FindFirstChild(
+                        "PointName",
+                        true
+                    )
+
+                if pointNameValue
+                    and pointNameValue:IsA("StringValue") then
+
+                    pointName =
+                        "["
+                        .. pointNameValue.Value
+                        .. "]\n"
+                end
+            end
+
+
+            text.Text =
+                pointName
+                .. plr.Name
+                .. "\n❤ "
+                .. math.floor(humanoid.Health)
+                .. "/"
+                .. math.floor(humanoid.MaxHealth)
+                .. " | "
+                .. distance
+                .. " st"
+
+        end
+    )
+
+
+    State.PlayerESPObjects[plr] = {
+        Highlight = highlight,
+        Billboard = billboard,
+        RenderConnectionName =
+            renderConnectionName
+    }
+
+end
+
+
 function funcs.CreatePlayerESP(plr)
+
     if plr == Services.LocalPlayer then
         return
     end
 
-    if State.PlayerESPObjects[plr] then
+    if not State.PlayerESPEnabled then
         return
     end
 
-function funcs.SetupCharacter(char)
-        if not State.PlayerESPEnabled then
-            return
-        end
 
-        local root =
-            char:WaitForChild(
-                "HumanoidRootPart",
-                5
-            )
-
-        local humanoid =
-            char:WaitForChild(
-                "Humanoid",
-                5
-            )
-
-        if not root or not humanoid then
-            return
-        end
-
-        local highlight =
-            Instance.new("Highlight")
-
-        highlight.Name = "PlayerESP"
-        highlight.FillTransparency = 1
-        highlight.OutlineTransparency = 0
-        highlight.OutlineColor =
-            Color3.fromRGB(255, 0, 0)
-
-        highlight.DepthMode =
-            Enum.HighlightDepthMode.AlwaysOnTop
-
-        highlight.Parent = char
-
-
-        local billboard =
-            Instance.new("BillboardGui")
-
-        billboard.Name = "PlayerESPText"
-
-        billboard.Size =
-            UDim2.new(0, 200, 0, 50)
-
-        billboard.StudsOffset =
-            Vector3.new(0, 3, 0)
-
-        billboard.AlwaysOnTop = true
-        billboard.Parent = root
-
-
-        local text =
-            Instance.new("TextLabel")
-
-        text.Size =
-            UDim2.new(1, 0, 1, 0)
-
-        text.BackgroundTransparency = 1
-        text.TextStrokeTransparency = 0
-        text.TextSize = 14
-
-        text.Font =
-            Enum.Font.SourceSansBold
-
-        text.TextColor3 =
-            Color3.fromRGB(255, 0, 0)
-
-        text.Parent = billboard
-
-
-        local renderConnectionName =
-            "PlayerESP_Render_" .. plr.UserId
-
-
-        ConnectionManager.Connect(
-            renderConnectionName,
-            Services.RunService.RenderStepped,
-            function()
-
-                if not State.PlayerESPEnabled then
-                    ConnectionManager.Disconnect(renderConnectionName)
-                    return
-                end
-
-                if not char.Parent then
-                    ConnectionManager.Disconnect(renderConnectionName)
-                    return
-                end
-
-                if humanoid.Health <= 0 then
-                    ConnectionManager.Disconnect(renderConnectionName)
-                    return
-                end
-
-
-                local localCharacter =
-                    Services.LocalPlayer.Character
-
-                local localRoot =
-                    localCharacter
-                    and localCharacter:FindFirstChild(
-                        "HumanoidRootPart"
-                    )
-
-
-                local distance = 0
-
-                if localRoot then
-                    distance =
-                        math.floor(
-                            (
-                                localRoot.Position
-                                - root.Position
-                            ).Magnitude
-                        )
-                end
-
-
-                if distance > State.PlayerESPMaxDistance then
-                    highlight.Enabled = false
-                    billboard.Enabled = false
-                    return
-                end
-
-
-                highlight.Enabled = true
-                billboard.Enabled = true
-
-
-                local nearestChakraPoint = nil
-                local nearestChakraDistance = math.huge
-
-
-                for _, chakraPoint in ipairs(
-                    State.ChakraPointsFolder:GetChildren()
-                ) do
-
-                    if chakraPoint.Name == "ChakraPoint" then
-
-                        local pointPart =
-                            chakraPoint.PrimaryPart
-                            or chakraPoint:FindFirstChildWhichIsA(
-                                "BasePart",
-                                true
-                            )
-
-                        if pointPart then
-
-                            local pointDistance =
-                                (
-                                    root.Position
-                                    - pointPart.Position
-                                ).Magnitude
-
-                            if pointDistance < nearestChakraDistance then
-                                nearestChakraDistance =
-                                    pointDistance
-
-                                nearestChakraPoint =
-                                    chakraPoint
-                            end
-                        end
-                    end
-                end
-
-
-                local pointName = ""
-
-
-                if State.PlayerESPShowLocation
-                    and nearestChakraPoint then
-
-                    local pointNameValue =
-                        nearestChakraPoint:FindFirstChild(
-                            "PointName",
-                            true
-                        )
-
-                    if pointNameValue
-                        and pointNameValue:IsA("StringValue") then
-
-                        pointName =
-                            "["
-                            .. pointNameValue.Value
-                            .. "]\n"
-                    end
-                end
-
-
-                text.Text =
-                    pointName
-                    .. plr.Name
-                    .. "\n❤ "
-                    .. math.floor(
-                        humanoid.Health
-                    )
-                    .. "/"
-                    .. math.floor(
-                        humanoid.MaxHealth
-                    )
-                    .. " | "
-                    .. distance
-                    .. " st"
-            end
-        )
-
-
-        State.PlayerESPObjects[plr] = {
-            Highlight = highlight,
-            Billboard = billboard,
-            RenderConnectionName =
-                renderConnectionName
-        }
-    end
-
-
-    if plr.Character then
-        funcs.SetupCharacter(plr.Character)
-    end
-
-
+    -- Character bağlantısını kur
     ConnectionManager.Connect(
         "PlayerESP_Character_" .. plr.UserId,
         plr.CharacterAdded,
@@ -1441,33 +1487,29 @@ function funcs.SetupCharacter(char)
                 return
             end
 
-
-            if State.PlayerESPObjects[plr] then
-
-                local old =
-                    State.PlayerESPObjects[plr]
-
-                if old.RenderConnectionName then
-                    ConnectionManager.Disconnect(
-                        old.RenderConnectionName
-                    )
-                end
-
-                if old.Highlight then
-                    old.Highlight:Destroy()
-                end
-
-                if old.Billboard then
-                    old.Billboard:Destroy()
-                end
-
-                State.PlayerESPObjects[plr] = nil
+            if not plr.Parent then
+                return
             end
 
+            funcs.SetupCharacter(
+                plr,
+                char
+            )
 
-            funcs.SetupCharacter(char)
         end
     )
+
+
+    -- Karakter zaten varsa hemen oluştur
+    if plr.Character then
+
+        funcs.SetupCharacter(
+            plr,
+            plr.Character
+        )
+
+    end
+
 end
 
 
@@ -1478,12 +1520,17 @@ function funcs.RemovePlayerESP()
     ) do
 
         funcs.RemovePlayerESPFromPlayer(plr)
-    end
 
+    end
 
     ConnectionManager.DisconnectPrefix(
         "PlayerESP_Character_"
     )
+
+    ConnectionManager.DisconnectPrefix(
+        "PlayerESP_Render_"
+    )
+
 end
 
 
@@ -1496,33 +1543,46 @@ Groupboxes.PlayerESP:AddToggle(
     }
 ):OnChanged(function(Value)
 
-    State.PlayerESPEnabled =
-        Value
+    State.PlayerESPEnabled = Value
+
 
     if Value then
 
+        -- Mevcut oyuncular
         for _, plr in ipairs(
             Services.Players:GetPlayers()
         ) do
 
             if plr ~= Services.LocalPlayer then
+
                 funcs.CreatePlayerESP(plr)
+
             end
+
         end
 
 
+        -- Sonradan giren oyuncular
         ConnectionManager.Connect(
             "PlayerESP_PlayerAdded",
             Services.Players.PlayerAdded,
             function(plr)
 
-                if State.PlayerESPEnabled then
-                    funcs.CreatePlayerESP(plr)
+                if plr == Services.LocalPlayer then
+                    return
                 end
+
+                if not State.PlayerESPEnabled then
+                    return
+                end
+
+                funcs.CreatePlayerESP(plr)
+
             end
         )
 
 
+        -- Oyuncu çıkınca temizle
         ConnectionManager.Connect(
             "PlayerESP_PlayerRemoving",
             Services.Players.PlayerRemoving,
@@ -1530,12 +1590,9 @@ Groupboxes.PlayerESP:AddToggle(
 
                 funcs.RemovePlayerESPFromPlayer(plr)
 
-                ConnectionManager.Disconnect(
-                    "PlayerESP_Character_"
-                    .. plr.UserId
-                )
             end
         )
+
 
     else
 
@@ -1548,10 +1605,13 @@ Groupboxes.PlayerESP:AddToggle(
         )
 
         funcs.RemovePlayerESP()
+
     end
+
 end)
 
 
+-- Show Location
 Groupboxes.PlayerESP:AddToggle(
     "PlayerESPShowLocation",
     {
@@ -1560,8 +1620,8 @@ Groupboxes.PlayerESP:AddToggle(
     }
 ):OnChanged(function(Value)
 
-    State.PlayerESPShowLocation =
-        Value
+    State.PlayerESPShowLocation = Value
+
 end)
 
 
@@ -1579,9 +1639,10 @@ Groupboxes.PlayerESP:AddSlider(
     }
 ):OnChanged(function(Value)
 
-    State.PlayerESPMaxDistance =
-        Value
+    State.PlayerESPMaxDistance = Value
+
 end)
+
 
 -- Scripts For Player Tab
 State.HUDPlayerName =
