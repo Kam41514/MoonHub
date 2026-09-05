@@ -48,6 +48,7 @@ local Groupboxes = {}
 local funcs = {}
 local BaseLocals = {}
 local SupportServices = {}
+local UI = {}
 
 State.PlayerList = {}
 function funcs.UpdatePlayerList()
@@ -734,11 +735,951 @@ Modules.InfiniteStamina =
     end)
 
 -- Player
+Groupboxes.IdentitySpoofer = Tabs.Player:AddLeftGroupbox("Identity Spoofer", "scan-face")
+Groupboxes.ProximityDetector = Tabs.Player:AddRightGroupbox("Proximity Detector", "bot")
+Groupboxes.ExtrasPlayer = Tabs.Player:AddRightGroupbox("Extras", "user")
 
--- Visual
+-- Scripts For Player Tab
+State.HUDPlayerName =
+    Services.Players.LocalPlayer
+        :WaitForChild("PlayerGui")
+        :WaitForChild("ClientGui")
+        :WaitForChild("Mainframe")
+        :WaitForChild("Loadout")
+        :WaitForChild("HUD")
+        :WaitForChild("PlayerName")
+
+State.HUDPlayerNameOriginal =
+    State.HUDPlayerName.Text
+
+State.HUDPlayerNameCustom =
+    State.HUDPlayerNameOriginal
+
+State.HairParts = {}
+State.HairHidden = false
+
+State.IconLabelOriginalTexts = {}
+State.CustomIconNameEnabled = false
+State.IconNameInput = nil
+
+
+--// Master Toggle
+Groupboxes.IdentitySpoofer:AddToggle("IdentitySpooferMaster", {
+    Text = "Identity Spoofer",
+    Default = false,
+})
+
+
+--// HUD Player Name Input
+Groupboxes.IdentitySpoofer:AddInput("HUDPlayerNameInput", {
+    Default = "",
+    Text = "HUD Player Name",
+    Placeholder = "Custom Name",
+})
+
+
+--// HUD Player Name Toggle
+Groupboxes.IdentitySpoofer:AddToggle("HUDPlayerNameToggle", {
+    Text = "Custom HUD Name",
+    Default = false,
+})
+
+
+--// Icon Label Functions
+function funcs.UpdateIconLabels(Text)
+    local PlayerGui =
+        Services.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+    for _, object in ipairs(PlayerGui:GetDescendants()) do
+        if object.Name == "IconLabel"
+            and object:IsA("TextLabel")
+        then
+            if State.IconLabelOriginalTexts[object] == nil then
+                State.IconLabelOriginalTexts[object] =
+                    object.Text
+            end
+
+            object.Text = Text
+        end
+    end
+end
+
+
+function funcs.RestoreIconLabels()
+    for object, OriginalText in pairs(
+        State.IconLabelOriginalTexts
+    ) do
+        if object and object.Parent then
+            object.Text = OriginalText
+        end
+    end
+
+    table.clear(State.IconLabelOriginalTexts)
+end
+
+
+--// Custom Icon Text
+State.IconNameInput =
+    Groupboxes.IdentitySpoofer:AddInput("IconNameInput", {
+        Text = "Custom Topbar Text",
+        Default = "",
+        Placeholder = "Custom Topbar Text",
+
+        Callback = function(Value)
+            if not Toggles.IdentitySpooferMaster.Value then
+                return
+            end
+
+            if State.CustomIconNameEnabled then
+                funcs.UpdateIconLabels(Value)
+            end
+        end,
+    })
+
+
+--// Custom Icon Text Toggle
+Groupboxes.IdentitySpoofer:AddToggle("CustomIconNameToggle", {
+    Text = "Custom Topbar Text",
+    Default = false,
+
+    Tooltip =
+        "Changes the top left LocalPlayer | LocalPlayer ID text.",
+
+    Callback = function(Value)
+        State.CustomIconNameEnabled = Value
+
+        if Value then
+            if Toggles.IdentitySpooferMaster.Value then
+                funcs.UpdateIconLabels(
+                    State.IconNameInput.Value
+                )
+            end
+        else
+            funcs.RestoreIconLabels()
+        end
+    end,
+})
+
+
+--// Hide Hair
+Groupboxes.IdentitySpoofer:AddToggle("HideHair", {
+    Text = "Hide Hair",
+    Default = false,
+})
+
+
+function funcs.FindHairObjects()
+
+    if not Services.Character then
+        return {}
+    end
+
+    local hairs = {}
+
+    for _, object in ipairs(
+        Services.Character:GetDescendants()
+    ) do
+
+        if object.Name:match("^Hair%d+$")
+            and object:IsA("BasePart")
+        then
+            table.insert(hairs, object)
+        end
+
+    end
+
+    return hairs
+end
+
+
+function funcs.SetHairVisibility(hidden)
+
+    if hidden then
+
+        for _, hair in ipairs(
+            funcs.FindHairObjects()
+        ) do
+
+            if State.HairParts[hair] == nil then
+                State.HairParts[hair] =
+                    hair.LocalTransparencyModifier
+            end
+
+            hair.LocalTransparencyModifier = 1
+        end
+
+    else
+
+        for object, transparency in pairs(
+            State.HairParts
+        ) do
+
+            if object and object.Parent then
+                object.LocalTransparencyModifier =
+                    transparency
+            end
+
+        end
+
+        table.clear(State.HairParts)
+    end
+end
+
+
+--// Unload
+funcs.UnloadIdentitySpoofer = function()
+
+    ConnectionManager.Disconnect("HUDPlayerNameHeartbeat")
+    ConnectionManager.Disconnect("HideHairHeartbeat")
+
+    if State.HUDPlayerName
+        and State.HUDPlayerName.Parent
+    then
+        State.HUDPlayerName.Text =
+            State.HUDPlayerNameOriginal
+    end
+
+    funcs.RestoreIconLabels()
+
+    if State.HairParts then
+
+        for object, transparency in pairs(
+            State.HairParts
+        ) do
+
+            if object and object.Parent then
+                object.LocalTransparencyModifier =
+                    transparency
+            end
+
+        end
+
+        table.clear(State.HairParts)
+    end
+
+    State.HairHidden = false
+    State.CustomIconNameEnabled = false
+end
+
+
+--// HUD Name Input Changed
+Options.HUDPlayerNameInput:OnChanged(function()
+
+    State.HUDPlayerNameCustom =
+        Options.HUDPlayerNameInput.Value
+
+    if Toggles.IdentitySpooferMaster.Value
+        and Toggles.HUDPlayerNameToggle.Value
+    then
+
+        if State.HUDPlayerName
+            and State.HUDPlayerName.Parent
+        then
+            State.HUDPlayerName.Text =
+                State.HUDPlayerNameCustom
+        end
+
+    end
+end)
+
+
+--// HUD Name Toggle Changed
+Toggles.HUDPlayerNameToggle:OnChanged(function()
+
+    ConnectionManager.Disconnect("HUDPlayerNameHeartbeat")
+
+    if Toggles.IdentitySpooferMaster.Value
+        and Toggles.HUDPlayerNameToggle.Value
+    then
+
+        if State.HUDPlayerName
+            and State.HUDPlayerName.Parent
+        then
+            State.HUDPlayerName.Text =
+                State.HUDPlayerNameCustom
+        end
+
+        ConnectionManager.Connect(
+            "HUDPlayerNameHeartbeat",
+            Services.RunService.Heartbeat,
+
+            function()
+
+                if not Toggles.IdentitySpooferMaster.Value
+                    or not Toggles.HUDPlayerNameToggle.Value
+                then
+                    return
+                end
+
+                if State.HUDPlayerName
+                    and State.HUDPlayerName.Parent
+                then
+
+                    if State.HUDPlayerName.Text
+                        ~= State.HUDPlayerNameCustom
+                    then
+                        State.HUDPlayerName.Text =
+                            State.HUDPlayerNameCustom
+                    end
+
+                end
+
+            end
+        )
+
+    else
+
+        if State.HUDPlayerName
+            and State.HUDPlayerName.Parent
+        then
+            State.HUDPlayerName.Text =
+                State.HUDPlayerNameOriginal
+        end
+
+    end
+end)
+
+
+--// Hide Hair Toggle Changed
+Toggles.HideHair:OnChanged(function()
+
+    ConnectionManager.Disconnect("HideHairHeartbeat")
+
+    if Toggles.IdentitySpooferMaster.Value
+        and Toggles.HideHair.Value
+    then
+
+        State.HairHidden = true
+
+        funcs.SetHairVisibility(true)
+
+        ConnectionManager.Connect(
+            "HideHairHeartbeat",
+            Services.RunService.Heartbeat,
+
+            function()
+
+                if not Toggles.IdentitySpooferMaster.Value
+                    or not Toggles.HideHair.Value
+                then
+                    return
+                end
+
+                for _, hair in ipairs(
+                    funcs.FindHairObjects()
+                ) do
+
+                    if State.HairParts[hair] == nil then
+                        State.HairParts[hair] =
+                            hair.LocalTransparencyModifier
+                    end
+
+                    if hair.LocalTransparencyModifier ~= 1 then
+                        hair.LocalTransparencyModifier = 1
+                    end
+
+                end
+
+            end
+        )
+
+    else
+
+        State.HairHidden = false
+
+        funcs.SetHairVisibility(false)
+
+    end
+end)
+
+
+--// Master Toggle Changed
+Toggles.IdentitySpooferMaster:OnChanged(function()
+
+    if not Toggles.IdentitySpooferMaster.Value then
+
+        ConnectionManager.Disconnect("HUDPlayerNameHeartbeat")
+        ConnectionManager.Disconnect("HideHairHeartbeat")
+
+        if State.HUDPlayerName
+            and State.HUDPlayerName.Parent
+        then
+            State.HUDPlayerName.Text =
+                State.HUDPlayerNameOriginal
+        end
+
+        State.HairHidden = false
+
+        funcs.SetHairVisibility(false)
+
+        funcs.RestoreIconLabels()
+
+        return
+    end
+
+
+    -- HUD Player Name
+    if Toggles.HUDPlayerNameToggle.Value then
+
+        if State.HUDPlayerName
+            and State.HUDPlayerName.Parent
+        then
+            State.HUDPlayerName.Text =
+                State.HUDPlayerNameCustom
+        end
+
+        ConnectionManager.Disconnect("HUDPlayerNameHeartbeat")
+
+        ConnectionManager.Connect(
+            "HUDPlayerNameHeartbeat",
+            Services.RunService.Heartbeat,
+
+            function()
+
+                if not Toggles.IdentitySpooferMaster.Value
+                    or not Toggles.HUDPlayerNameToggle.Value
+                then
+                    return
+                end
+
+                if State.HUDPlayerName
+                    and State.HUDPlayerName.Parent
+                then
+
+                    if State.HUDPlayerName.Text
+                        ~= State.HUDPlayerNameCustom
+                    then
+                        State.HUDPlayerName.Text =
+                            State.HUDPlayerNameCustom
+                    end
+
+                end
+
+            end
+        )
+
+    end
+
+
+    -- Custom Icon Text
+    if Toggles.CustomIconNameToggle.Value then
+
+        State.CustomIconNameEnabled = true
+
+        funcs.UpdateIconLabels(
+            State.IconNameInput.Value
+        )
+
+    end
+
+
+    -- Hide Hair
+    if Toggles.HideHair.Value then
+
+        State.HairHidden = true
+
+        funcs.SetHairVisibility(true)
+
+        ConnectionManager.Disconnect("HideHairHeartbeat")
+
+        ConnectionManager.Connect(
+            "HideHairHeartbeat",
+            Services.RunService.Heartbeat,
+
+            function()
+
+                if not Toggles.IdentitySpooferMaster.Value
+                    or not Toggles.HideHair.Value
+                then
+                    return
+                end
+
+                for _, hair in ipairs(
+                    funcs.FindHairObjects()
+                ) do
+
+                    if State.HairParts[hair] == nil then
+                        State.HairParts[hair] =
+                            hair.LocalTransparencyModifier
+                    end
+
+                    if hair.LocalTransparencyModifier ~= 1 then
+                        hair.LocalTransparencyModifier = 1
+                    end
+
+                end
+
+            end
+        )
+
+    end
+end)
+
+function funcs.AutoLogKick(Player, Distance)
+
+    if not State.AutoLog then
+        return
+    end
+
+    Library:Notify({
+        Title = "Auto Log",
+        Description = Player.Name
+            .. " detected at ["
+            .. math.floor(Distance)
+            .. "]",
+        Time = 2
+    })
+
+    task.wait(0.1)
+
+    Services.LocalPlayer:Kick(
+        "Auto Log: "
+        .. Player.Name
+        .. " detected within "
+        .. math.floor(Distance)
+        .. " studs."
+    )
+end
+
+State.ProximityCheck = false
+State.ProximityDistance = 375
+Groupboxes.ProximityDetector:AddSlider(
+    "ProximityDistance",
+    {
+        Text = "Proximity Check Distance",
+        Default = 375,
+        Min = 100,
+        Max = 2000,
+        Rounding = 0,
+
+        Callback = function(Value)
+            State.ProximityDistance = Value
+        end
+    }
+)
+
+Toggles.ProximityCheck = Groupboxes.ProximityDetector:AddToggle(
+    "ProximityCheck",
+    {
+        Text = "Proximity Check",
+        Default = false,
+
+        Callback = function(Value)
+            State.ProximityCheck = Value
+
+            if ProximityLabel then
+                ProximityLabel.Visible = false
+            end
+        end
+    }
+)
+
+Toggles.AutoLogToggle = Groupboxes.ProximityDetector:AddToggle(
+    "AutoLogToggle",
+    {
+        Text = "Auto Log",
+        Default = false,
+
+        Callback = function(Value)
+            State.AutoLog = Value
+        end
+    }
+)
+
+
+UI.ProximityGui = nil
+UI.ProximityLabel = nil
+
+State.LastAutoLog = 0
+State.AutoLogCooldown = 3
+
+
+function funcs.CreateProximityUI()
+
+    if UI.ProximityGui then
+        return
+    end
+
+    UI.ProximityGui = Instance.new("ScreenGui")
+    UI.ProximityGui.Name = "ProximityStatus"
+    UI.ProximityGui.ResetOnSpawn = false
+    UI.ProximityGui.IgnoreGuiInset = true
+    UI.ProximityGui.Parent =
+        Services.LocalPlayer:WaitForChild("PlayerGui")
+
+
+    UI.ProximityLabel = Instance.new("TextLabel")
+    UI.ProximityLabel.Name = "ProximityLabel"
+
+    UI.ProximityLabel.AnchorPoint =
+        Vector2.new(0.5, 0)
+
+    UI.ProximityLabel.Position =
+        UDim2.new(0.5, 0, 0, 110)
+
+    UI.ProximityLabel.Size =
+        UDim2.new(0, 400, 0, 70)
+
+    UI.ProximityLabel.BackgroundTransparency = 1
+
+    UI.ProximityLabel.Font =
+        Enum.Font.GothamBold
+
+    UI.ProximityLabel.TextSize = 30
+
+    UI.ProximityLabel.TextColor3 =
+        Color3.fromRGB(255, 80, 80)
+
+    UI.ProximityLabel.TextStrokeColor3 =
+        Color3.fromRGB(0, 0, 0)
+
+    UI.ProximityLabel.TextStrokeTransparency = 0
+
+    UI.ProximityLabel.TextXAlignment =
+        Enum.TextXAlignment.Center
+
+    UI.ProximityLabel.TextYAlignment =
+        Enum.TextYAlignment.Center
+
+    UI.ProximityLabel.Visible = false
+
+    UI.ProximityLabel.Parent =
+        UI.ProximityGui
+end
+
+
+funcs.CreateProximityUI()
+
+
+ConnectionManager.Connect(
+    "Proximity_Heartbeat",
+    Services.RunService.Heartbeat,
+    function()
+
+        local Character =
+            Services.LocalPlayer.Character
+
+        if not Character then
+
+            if UI.ProximityLabel then
+                UI.ProximityLabel.Visible = false
+            end
+
+            return
+        end
+
+
+        local MyRoot = Character:FindFirstChild("HumanoidRootPart")
+
+        if not MyRoot then
+
+            if UI.ProximityLabel then
+                UI.ProximityLabel.Visible = false
+            end
+
+            return
+        end
+
+
+        local closestPlayer = nil
+        local closestDistance = math.huge
+
+
+        for _, Player in ipairs(
+            Services.Players:GetPlayers()
+        ) do
+
+            if Player ~= Services.LocalPlayer
+                and Player.Character then
+
+                local TheirRoot =
+                    Player.Character:FindFirstChild(
+                        "HumanoidRootPart"
+                    )
+
+                if TheirRoot then
+
+                    local Distance =
+                        (
+                            MyRoot.Position
+                            - TheirRoot.Position
+                        ).Magnitude
+
+                    if Distance <= State.ProximityDistance
+                        and Distance < closestDistance then
+
+                        closestDistance = Distance
+                        closestPlayer = Player
+
+                    end
+                end
+            end
+        end
+
+        if State.ProximityCheck
+            and closestPlayer
+            and UI.ProximityLabel then
+
+            UI.ProximityLabel.Text =
+                closestPlayer.Name
+                .. " On Distance ["
+                .. math.floor(closestDistance)
+                .. "]"
+
+            UI.ProximityLabel.Visible = true
+
+        elseif UI.ProximityLabel then
+
+            UI.ProximityLabel.Visible = false
+
+        end
+
+
+        if State.AutoLog
+            and closestPlayer then
+
+            local currentTime = tick()
+
+            if currentTime - State.LastAutoLog
+                >= State.AutoLogCooldown then
+
+                State.LastAutoLog = currentTime
+
+                funcs.AutoLogKick(
+                    closestPlayer,
+                    closestDistance
+                )
+            end
+        end
+    end
+)
+
+Groupboxes.ExtrasPlayer:AddButton({
+    Text = "Reset Character",
+
+    Func = function()
+
+        if Services.Character then
+            Services.Character:BreakJoints()
+        end
+
+    end
+})
+
+Groupboxes.ExtrasPlayer:AddButton({
+    Text = "Kick Yourself",
+    Func = function()
+        Services.Players.LocalPlayer:Kick(
+            "MoonHub\nYou have been kicked from the game."
+        )
+    end,
+    Tooltip = "Kick yourself from the current game.",
+    Confirm = true,
+})
+
 
 -- World
+Groupboxes.WorldRight = Tabs.World:AddRightGroupbox("Transparency Settings", "eye")
+Groupboxes.WorldLeft = Tabs.World:AddLeftGroupbox("World Settings", "globe")
 
+getgenv().NewNoFallEnabled = false
+
+if not getgenv().NewNoFallHookInstalled then
+
+    local oldNamecall
+
+    oldNamecall = hookmetamethod(
+        game,
+        "__namecall",
+        function(self, ...)
+
+            local method =
+                getnamecallmethod()
+
+            if method == "FindFirstChild"
+                and getgenv().NewNoFallEnabled then
+
+                local args = {...}
+
+                if args[1] == "NegateFall" then
+                    return true
+                end
+            end
+
+            return oldNamecall(
+                self,
+                ...
+            )
+        end
+    )
+
+    getgenv().NewNoFallOldNamecall =
+        oldNamecall
+
+    getgenv().NewNoFallHookInstalled =
+        true
+end
+
+
+Modules.NewNoFallToggle =
+    Groupboxes.WorldLeft:AddToggle(
+        "NewNoFallToggle",
+        {
+            Text = "No Fall Damage",
+            Default = false,
+
+            Callback = function(Value)
+
+                getgenv().NewNoFallEnabled =
+                    Value
+
+            end
+        }
+    )
+
+
+
+
+-- Visual
+Groupboxes.VisualWorld = Tabs.Visual:AddRightGroupbox("Lighting Settings", "lightbulb")
+State.BrightnessLevel = State.BrightnessLevel or 2
+State.FullBrightEnabled = State.FullBrightEnabled or false
+State.FullBrightConnection = nil
+State.OldBrightness = nil
+
+Groupboxes.VisualWorld:AddSlider("BrightnessLevel", {
+    Text = "Brightness",
+    Default = 2,
+    Min = 0,
+    Max = 10,
+    Rounding = 1,
+
+    Callback = function(Value)
+        State.BrightnessLevel = Value
+
+        if State.FullBrightEnabled then
+            Services.Lighting.Brightness = Value
+        end
+    end
+})
+
+
+function funcs.fullBright(state)
+
+    State.FullBrightEnabled = state
+
+    if State.FullBrightConnection then
+        State.FullBrightConnection:Disconnect()
+        State.FullBrightConnection = nil
+    end
+
+    if state then
+
+        State.OldBrightness = Services.Lighting.Brightness
+
+        Services.Lighting.Brightness = State.BrightnessLevel
+
+        State.FullBrightConnection =
+            Services.RunService.RenderStepped:Connect(function()
+
+                if not State.FullBrightEnabled then
+                    return
+                end
+
+                Services.Lighting.Brightness = State.BrightnessLevel
+
+            end)
+
+    else
+
+        if State.OldBrightness ~= nil then
+            Services.Lighting.Brightness = State.OldBrightness
+            State.OldBrightness = nil
+        end
+
+    end
+end
+
+funcs.noRain = function(state)
+	if not state then
+		if BaseLocals.noRainLoop then
+			task.cancel(BaseLocals.noRainLoop)
+			BaseLocals.noRainLoop = nil
+		end
+
+		return
+	end
+
+	BaseLocals.noRainLoop = task.spawn(function()
+		while true do
+			Services.ReplicatedStorage.Raining.Value = ""
+			task.wait()
+		end
+	end)
+end
+
+
+Groupboxes.VisualWorld:AddToggle(
+    "FullBright",
+    {
+        Text = "Full Bright",
+        Default = false,
+    }
+):OnChanged(function()
+    funcs.fullBright(Toggles.FullBright.Value)
+end)
+
+State.noFogConnection = nil
+State.oldFogEnd = nil
+
+Groupboxes.VisualWorld:AddToggle("NoFog", {
+	Text = "No Fog",
+	Default = false,
+
+	Callback = function(state)
+		ConnectionManager.DisconnectPrefix("NoFog.")
+
+		if state then
+			State.oldFogEnd = Services.Lighting.FogEnd
+
+			Services.Lighting.FogEnd = 9999999999
+
+			ConnectionManager.Connect("NoFog.FogEnd",
+				Services.Lighting:GetPropertyChangedSignal("FogEnd"),
+				function()
+					Services.Lighting.FogEnd = 9999999999
+				end
+			)
+
+			ConnectionManager.Connect("NoFog.PointBlur",
+				game:GetService("RunService").Heartbeat,
+				function()
+					if Services.Lighting:FindFirstChild("PointBlur") then
+						Services.Lighting.PointBlur.Enabled = false
+					end
+				end
+			)
+
+		else
+			if State.oldFogEnd ~= nil then
+				Services.Lighting.FogEnd = State.oldFogEnd
+				State.oldFogEnd = nil
+			end
+		end
+	end
+})
+
+
+
+
+Modules.NoRainToggle = Groupboxes.VisualWorld:AddToggle("NoRain", {
+	Text = "No Rain",
+	Default = false
+})
+
+Modules.NoRainToggle:OnChanged(function(Value)
+	funcs.noRain(Value)
+end)
 
 -- Misc
 Groupboxes.ServerSystems = Tabs.Misc:AddLeftGroupbox("Server Systems", "server")
@@ -1686,11 +2627,36 @@ Groupboxes.LibraryTab:AddButton("Unload", function()
             oldIndex = nil
         end
 
+        getgenv().NewNoFallEnabled = false
+
+    if State.noFogConnection then
+        State.noFogConnection:Disconnect()
+        State.noFogConnection = nil
+    end
+
+    if State.oldFogEnd ~= nil then
+        Services.Lighting.FogEnd = State.oldFogEnd
+        State.oldFogEnd = nil
+    end
+
+    if BaseLocals.noRainLoop then
+        task.cancel(BaseLocals.noRainLoop)
+        BaseLocals.noRainLoop = nil
+    end
+
+    if State.FullBrightConnection then
+        State.FullBrightConnection:Disconnect()
+        State.FullBrightConnection = nil
+    end
+
+
+
         funcs.RemoveAttachments("NoSlowdownVelocity")
         funcs.RemoveAttachments("NoSlowdownAttachment")
         ConnectionManager.DisconnectPrefix("SilentAim.")
         funcs.StopBurnListener()
         funcs.StopWatermarkFPS()
+        funcs.UnloadIdentitySpoofer()
         ConnectionManager.DisconnectAll()
         Library:Unload()
 end)
