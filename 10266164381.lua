@@ -196,20 +196,161 @@ function funcs.getMousePosition()
 end
 
 function funcs.IsPlayerVisible(Player)
-    local PlayerCharacter = Player.Character
-    local LocalPlayerCharacter = Services.LocalPlayer.Character
-    
-    if not (PlayerCharacter or LocalPlayerCharacter) then return end 
-    
-    local PlayerRoot = SupportServices.FindFirstChild(PlayerCharacter, Options.TargetPart.Value) or SupportServices.FindFirstChild(PlayerCharacter, "HumanoidRootPart")
-    
-    if not PlayerRoot then return end 
-    
-    local CastPoints, IgnoreList = {PlayerRoot.Position, LocalPlayerCharacter, PlayerCharacter}, {LocalPlayerCharacter, PlayerCharacter}
-    local ObscuringObjects = #SupportServices.GetPartsObscuringTarget(Services.Camera, CastPoints, IgnoreList)
-    
-    return ((ObscuringObjects == 0 and true) or (ObscuringObjects > 0 and false))
+
+    local PlayerCharacter =
+        Player.Character
+
+    local LocalPlayerCharacter =
+        Services.LocalPlayer.Character
+
+    if not PlayerCharacter
+        or not LocalPlayerCharacter then
+        return false
+    end
+
+    local TargetPartName =
+        Options.TargetPart.Value
+
+    if TargetPartName == "Random" then
+        TargetPartName = "HumanoidRootPart"
+    end
+
+    local PlayerRoot =
+        SupportServices.FindFirstChild(
+            PlayerCharacter,
+            TargetPartName
+        )
+        or SupportServices.FindFirstChild(
+            PlayerCharacter,
+            "HumanoidRootPart"
+        )
+
+    if not PlayerRoot then
+        return false
+    end
+
+    local CastPoints = {
+        PlayerRoot.Position
+    }
+
+    local IgnoreList = {
+        LocalPlayerCharacter,
+        PlayerCharacter
+    }
+
+    local ObscuringObjects =
+        #SupportServices.GetPartsObscuringTarget(
+            Services.Camera,
+            CastPoints,
+            IgnoreList
+        )
+
+    return ObscuringObjects == 0
 end
+
+
+function funcs.getClosestPlayer()
+
+    if not Options.TargetPart.Value then
+        return nil
+    end
+
+    local closest = nil
+    local closestDistance =
+        Options.Radius.Value or 2000
+
+    local mousePosition =
+        funcs.getMousePosition()
+
+    local targetPartOption =
+        Options.TargetPart.Value
+
+    local visibleCheck =
+        Toggles.VisibleCheck.Value
+
+    for _, player in ipairs(
+        SupportServices.GetPlayers(
+            Services.Players
+        )
+    ) do
+
+        if player == Services.LocalPlayer then
+            continue
+        end
+
+        local character =
+            player.Character
+
+        if not character then
+            continue
+        end
+
+        local humanoid =
+            SupportServices.FindFirstChild(
+                character,
+                "Humanoid"
+            )
+
+        if not humanoid
+            or humanoid.Health <= 0 then
+            continue
+        end
+
+        local targetPartName =
+            targetPartOption
+
+        if targetPartName == "Random" then
+
+            targetPartName =
+                State.ValidTargetParts[
+                    math.random(
+                        1,
+                        #State.ValidTargetParts
+                    )
+                ]
+
+        end
+
+        local targetPart =
+            SupportServices.FindFirstChild(
+                character,
+                targetPartName
+            )
+
+        if not targetPart then
+            continue
+        end
+
+        local screenPosition, onScreen =
+            funcs.getPositionOnScreen(
+                targetPart.Position
+            )
+
+        if not onScreen then
+            continue
+        end
+
+        local distance =
+            (
+                mousePosition
+                - screenPosition
+            ).Magnitude
+
+        if distance < closestDistance then
+
+            if not visibleCheck
+                or funcs.IsPlayerVisible(player) then
+
+                closest = targetPart
+                closestDistance = distance
+
+            end
+        end
+    end
+
+    return closest
+end
+
 
 function funcs.getClosestPlayer()
     if not Options.TargetPart.Value then
@@ -377,26 +518,43 @@ ConnectionManager.Connect("SilentAim.RenderStepped", SupportServices.RenderStepp
 end)
 
 
-local oldIndex = nil 
-oldIndex = hookmetamethod(game, "__index", newcclosure(function(self, Index)
-    if self == Services.Mouse and not checkcaller() and Toggles.aim_Enabled.Value and funcs.getClosestPlayer() then
-        local HitPart = funcs.getClosestPlayer()
-         
-        if Index == "Target" or Index == "target" then 
-            return HitPart
-        elseif Index == "Hit" or Index == "hit" then 
-            return HitPart.CFrame
-        elseif Index == "X" or Index == "x" then 
-            return self.X 
-        elseif Index == "Y" or Index == "y" then 
-            return self.Y 
-        elseif Index == "UnitRay" then 
-            return Ray.new(self.Origin, (self.Hit - self.Origin).Unit)
-        end
-    end
+local oldIndex
 
-    return oldIndex(self, Index)
-end))
+oldIndex = hookmetamethod(
+    game,
+    "__index",
+    newcclosure(function(self, Index)
+
+        if self == Services.Mouse
+            and not checkcaller()
+            and Toggles.aim_Enabled
+            and Toggles.aim_Enabled.Value then
+
+            local HitPart =
+                funcs.getClosestPlayer()
+
+            if HitPart then
+
+                if Index == "Target"
+                    or Index == "target" then
+
+                    return HitPart
+
+                elseif Index == "Hit"
+                    or Index == "hit" then
+
+                    return HitPart.CFrame
+
+                end
+            end
+        end
+
+        return oldIndex(
+            self,
+            Index
+        )
+    end)
+)
 
 
 -- No Stun
@@ -2016,10 +2174,14 @@ State.PlayerESPObjects = {}
 
 State.PlayerESPEnabled = false
 State.PlayerESPShowLocation = true
+State.PlayerESPShowLocationMode = "Show Closest Chakra Point"
 State.PlayerESPMaxDistance = 2000
 
 State.ChakraPointsFolder =
     workspace:WaitForChild("ChakraPoints")
+
+State.LocationsFolder =
+    workspace:WaitForChild("Locations")
 
 
 function funcs.RemovePlayerESPFromPlayer(plr)
@@ -2081,8 +2243,6 @@ function funcs.SetupCharacter(plr, char)
         return
     end
 
-
-    -- Eski ESP varsa temizle
     local old =
         State.PlayerESPObjects[plr]
 
@@ -2105,7 +2265,6 @@ function funcs.SetupCharacter(plr, char)
         State.PlayerESPObjects[plr] = nil
     end
 
-
     local highlight =
         Instance.new("Highlight")
 
@@ -2120,7 +2279,6 @@ function funcs.SetupCharacter(plr, char)
 
     highlight.Parent = char
 
-
     local billboard =
         Instance.new("BillboardGui")
 
@@ -2134,7 +2292,6 @@ function funcs.SetupCharacter(plr, char)
 
     billboard.AlwaysOnTop = true
     billboard.Parent = root
-
 
     local text =
         Instance.new("TextLabel")
@@ -2154,10 +2311,8 @@ function funcs.SetupCharacter(plr, char)
 
     text.Parent = billboard
 
-
     local renderConnectionName =
         "PlayerESP_Render_" .. plr.UserId
-
 
     ConnectionManager.Connect(
         renderConnectionName,
@@ -2184,7 +2339,6 @@ function funcs.SetupCharacter(plr, char)
                 return
             end
 
-
             local localCharacter =
                 Services.LocalPlayer.Character
 
@@ -2194,13 +2348,11 @@ function funcs.SetupCharacter(plr, char)
                     "HumanoidRootPart"
                 )
 
-
             if not localRoot then
                 highlight.Enabled = false
                 billboard.Enabled = false
                 return
             end
-
 
             local distance =
                 math.floor(
@@ -2210,95 +2362,172 @@ function funcs.SetupCharacter(plr, char)
                     ).Magnitude
                 )
 
-
             if distance > State.PlayerESPMaxDistance then
-
                 highlight.Enabled = false
                 billboard.Enabled = false
-
                 return
             end
-
 
             highlight.Enabled = true
             billboard.Enabled = true
 
+            local locationName = ""
 
-            local nearestChakraPoint = nil
-            local nearestChakraDistance = math.huge
+            if State.PlayerESPShowLocation then
 
+                if State.PlayerESPShowLocationMode
+                    == "Show Closest Chakra Point" then
 
-            for _, chakraPoint in ipairs(
-                State.ChakraPointsFolder:GetChildren()
-            ) do
+                    local nearestChakraPoint = nil
+                    local nearestChakraDistance = math.huge
 
-                if chakraPoint.Name == "ChakraPoint" then
+                    for _, chakraPoint in ipairs(
+                        State.ChakraPointsFolder:GetChildren()
+                    ) do
 
-                    local pointPart =
-                        chakraPoint.PrimaryPart
-                        or chakraPoint:FindFirstChildWhichIsA(
-                            "BasePart",
-                            true
-                        )
+                        if chakraPoint.Name == "ChakraPoint" then
 
-                    if pointPart then
+                            local pointPart =
+                                chakraPoint.PrimaryPart
+                                or chakraPoint:FindFirstChildWhichIsA(
+                                    "BasePart",
+                                    true
+                                )
 
-                        local pointDistance =
-                            (
-                                root.Position
-                                - pointPart.Position
-                            ).Magnitude
+                            if pointPart then
 
-                        if pointDistance < nearestChakraDistance then
+                                local pointDistance =
+                                    (
+                                        root.Position
+                                        - pointPart.Position
+                                    ).Magnitude
 
-                            nearestChakraDistance =
-                                pointDistance
+                                if pointDistance
+                                    < nearestChakraDistance then
 
-                            nearestChakraPoint =
-                                chakraPoint
+                                    nearestChakraDistance =
+                                        pointDistance
+
+                                    nearestChakraPoint =
+                                        chakraPoint
+                                end
+                            end
                         end
+                    end
+
+                    if nearestChakraPoint then
+
+                        local pointNameValue =
+                            nearestChakraPoint:FindFirstChild(
+                                "PointName",
+                                true
+                            )
+
+                        if pointNameValue
+                            and pointNameValue:IsA("StringValue") then
+
+                            locationName =
+                                pointNameValue.Value
+
+                        end
+                    end
+
+                elseif State.PlayerESPShowLocationMode
+                    == "Show Location Attribute" then
+
+                    local nearestLocation = nil
+                    local nearestDistance = math.huge
+
+                    for _, location in ipairs(
+                        State.LocationsFolder:GetChildren()
+                    ) do
+
+                        local locationPart = nil
+
+                        if location:IsA("BasePart") then
+
+                            locationPart = location
+
+                        elseif location:IsA("Model") then
+
+                            locationPart =
+                                location.PrimaryPart
+                                or location:FindFirstChildWhichIsA(
+                                    "BasePart",
+                                    true
+                                )
+
+                        elseif location:IsA("Folder") then
+
+                            locationPart =
+                                location:FindFirstChildWhichIsA(
+                                    "BasePart",
+                                    true
+                                )
+
+                        end
+
+                        if locationPart then
+
+                            local locationDistance =
+                                (
+                                    root.Position
+                                    - locationPart.Position
+                                ).Magnitude
+
+                            if locationDistance
+                                < nearestDistance then
+
+                                nearestDistance =
+                                    locationDistance
+
+                                nearestLocation =
+                                    location
+
+                            end
+                        end
+                    end
+
+                    if nearestLocation then
+
+                        locationName =
+                            nearestLocation.Name
+
                     end
                 end
             end
 
+            if locationName ~= "" then
 
-            local pointName = ""
+                text.Text =
+                    "["
+                    .. locationName
+                    .. "]\n"
+                    .. plr.Name
+                    .. "\n❤ "
+                    .. math.floor(humanoid.Health)
+                    .. "/"
+                    .. math.floor(humanoid.MaxHealth)
+                    .. " | "
+                    .. distance
+                    .. " st"
 
+            else
 
-            if State.PlayerESPShowLocation
-                and nearestChakraPoint then
+                text.Text =
+                    plr.Name
+                    .. "\n❤ "
+                    .. math.floor(humanoid.Health)
+                    .. "/"
+                    .. math.floor(humanoid.MaxHealth)
+                    .. " | "
+                    .. distance
+                    .. " st"
 
-                local pointNameValue =
-                    nearestChakraPoint:FindFirstChild(
-                        "PointName",
-                        true
-                    )
-
-                if pointNameValue
-                    and pointNameValue:IsA("StringValue") then
-
-                    pointName =
-                        "["
-                        .. pointNameValue.Value
-                        .. "]\n"
-                end
             end
-
-
-            text.Text =
-                pointName
-                .. plr.Name
-                .. "\n❤ "
-                .. math.floor(humanoid.Health)
-                .. "/"
-                .. math.floor(humanoid.MaxHealth)
-                .. " | "
-                .. distance
-                .. " st"
 
         end
     )
-
 
     State.PlayerESPObjects[plr] = {
         Highlight = highlight,
@@ -2320,8 +2549,6 @@ function funcs.CreatePlayerESP(plr)
         return
     end
 
-
-    -- Character bağlantısını kur
     ConnectionManager.Connect(
         "PlayerESP_Character_" .. plr.UserId,
         plr.CharacterAdded,
@@ -2345,8 +2572,6 @@ function funcs.CreatePlayerESP(plr)
         end
     )
 
-
-    -- Karakter zaten varsa hemen oluştur
     if plr.Character then
 
         funcs.SetupCharacter(
@@ -2380,7 +2605,6 @@ function funcs.RemovePlayerESP()
 end
 
 
--- Player ESP
 Groupboxes.PlayerESP:AddToggle(
     "PlayerESPToggle",
     {
@@ -2391,24 +2615,18 @@ Groupboxes.PlayerESP:AddToggle(
 
     State.PlayerESPEnabled = Value
 
-
     if Value then
 
-        -- Mevcut oyuncular
         for _, plr in ipairs(
             Services.Players:GetPlayers()
         ) do
 
             if plr ~= Services.LocalPlayer then
-
                 funcs.CreatePlayerESP(plr)
-
             end
 
         end
 
-
-        -- Sonradan giren oyuncular
         ConnectionManager.Connect(
             "PlayerESP_PlayerAdded",
             Services.Players.PlayerAdded,
@@ -2427,8 +2645,6 @@ Groupboxes.PlayerESP:AddToggle(
             end
         )
 
-
-        -- Oyuncu çıkınca temizle
         ConnectionManager.Connect(
             "PlayerESP_PlayerRemoving",
             Services.Players.PlayerRemoving,
@@ -2438,7 +2654,6 @@ Groupboxes.PlayerESP:AddToggle(
 
             end
         )
-
 
     else
 
@@ -2457,11 +2672,10 @@ Groupboxes.PlayerESP:AddToggle(
 end)
 
 
--- Show Location
 Groupboxes.PlayerESP:AddToggle(
     "PlayerESPShowLocation",
     {
-        Text = "Show Player Location",
+        Text = "Show Location",
         Default = true
     }
 ):OnChanged(function(Value)
@@ -2471,7 +2685,25 @@ Groupboxes.PlayerESP:AddToggle(
 end)
 
 
--- ESP Distance
+Groupboxes.PlayerESP:AddDropdown(
+    "PlayerESPShowLocationMode",
+    {
+        Text = "Location Type",
+
+        Values = {
+            "Show Closest Chakra Point",
+            "Show Location Attribute (Buggy)"
+        },
+
+        Default = "Show Closest Chakra Point"
+    }
+):OnChanged(function(Value)
+
+    State.PlayerESPShowLocationMode = Value
+
+end)
+
+
 Groupboxes.PlayerESP:AddSlider(
     "PlayerESPDistance",
     {
@@ -2488,7 +2720,6 @@ Groupboxes.PlayerESP:AddSlider(
     State.PlayerESPMaxDistance = Value
 
 end)
-
 
 
 State.BrightnessLevel = State.BrightnessLevel or 2
