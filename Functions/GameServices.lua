@@ -22,8 +22,6 @@ Services.PlayerModule = require(
     Services.PlayerScripts:WaitForChild("PlayerModule")
 )
 
-Services.ControlModule = Services.PlayerModule:GetControls()
-
 Services.GameManager = require(
     Services.ReplicatedStorage:WaitForChild("GameManager")
 )
