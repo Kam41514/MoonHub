@@ -24,28 +24,27 @@ ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 ScreenGui.DisplayOrder = 999
 ScreenGui.Parent = PlayerGui
 
-local Theme = {
-    Background = Color3.fromRGB(15, 16, 19),
-    Header = Color3.fromRGB(19, 20, 24),
-    Panel = Color3.fromRGB(18, 19, 23),
-    Card = Color3.fromRGB(24, 25, 30),
-    CardHover = Color3.fromRGB(30, 31, 37),
-    Border = Color3.fromRGB(47, 49, 57),
-    Text = Color3.fromRGB(240, 241, 245),
-    SubText = Color3.fromRGB(157, 160, 171),
-    Muted = Color3.fromRGB(110, 113, 124),
-    Accent = Color3.fromRGB(143, 118, 255),
-    AccentSoft = Color3.fromRGB(47, 40, 75)
+local Colors = {
+    Background = Color3.fromRGB(19, 19, 22),
+    Header = Color3.fromRGB(15, 15, 18),
+    Panel = Color3.fromRGB(22, 22, 26),
+    Card = Color3.fromRGB(29, 29, 34),
+    CardHover = Color3.fromRGB(37, 37, 43),
+    Border = Color3.fromRGB(65, 65, 73),
+    Text = Color3.fromRGB(245, 245, 248),
+    Description = Color3.fromRGB(205, 205, 212),
+    Muted = Color3.fromRGB(160, 160, 170),
+    Accent = Color3.fromRGB(157, 130, 255)
 }
 
-local function CreateCorner(parent, radius)
+local function Corner(parent, radius)
     local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(0, radius)
     corner.Parent = parent
     return corner
 end
 
-local function CreateStroke(parent, color, transparency, thickness)
+local function Stroke(parent, color, transparency, thickness)
     local stroke = Instance.new("UIStroke")
     stroke.Color = color
     stroke.Transparency = transparency or 0
@@ -55,13 +54,13 @@ local function CreateStroke(parent, color, transparency, thickness)
     return stroke
 end
 
-local function CreateLabel(parent, properties)
+local function Label(parent, properties)
     local label = Instance.new("TextLabel")
     label.BackgroundTransparency = 1
     label.BorderSizePixel = 0
     label.Font = Enum.Font.Gotham
-    label.TextColor3 = Theme.Text
-    label.TextSize = 13
+    label.TextColor3 = Colors.Text
+    label.TextSize = 14
 
     for property, value in pairs(properties) do
         label[property] = value
@@ -73,70 +72,68 @@ end
 
 local Main = Instance.new("Frame")
 Main.Name = "Main"
-Main.Size = UDim2.new(0, 520, 0, 440)
-Main.Position = UDim2.new(0.5, -260, 0.5, -220)
-Main.BackgroundColor3 = Theme.Background
+Main.Size = UDim2.new(0, 560, 0, 455)
+Main.Position = UDim2.new(0.5, -280, 0.5, -227)
+Main.BackgroundColor3 = Colors.Background
 Main.BorderSizePixel = 0
 Main.ClipsDescendants = true
 Main.Parent = ScreenGui
 
-CreateCorner(Main, 9)
-CreateStroke(Main, Theme.Border, 0.15, 1)
+Corner(Main, 8)
+Stroke(Main, Colors.Border, 0.12, 1)
 
 local Header = Instance.new("Frame")
 Header.Name = "Header"
-Header.Size = UDim2.new(1, 0, 0, 58)
-Header.BackgroundColor3 = Theme.Header
+Header.Size = UDim2.new(1, 0, 0, 52)
+Header.BackgroundColor3 = Colors.Header
 Header.BorderSizePixel = 0
 Header.Parent = Main
 
-local HeaderDivider = Instance.new("Frame")
-HeaderDivider.Size = UDim2.new(1, -32, 0, 1)
-HeaderDivider.Position = UDim2.new(0, 16, 1, -1)
-HeaderDivider.BackgroundColor3 = Theme.Border
-HeaderDivider.BackgroundTransparency = 0.2
-HeaderDivider.BorderSizePixel = 0
-HeaderDivider.Parent = Header
+local HeaderCorner = Corner(Header, 8)
 
-local Logo = Instance.new("Frame")
-Logo.Size = UDim2.new(0, 31, 0, 31)
-Logo.Position = UDim2.new(0, 18, 0, 13)
-Logo.BackgroundColor3 = Theme.AccentSoft
-Logo.BorderSizePixel = 0
-Logo.Parent = Header
+local HeaderCover = Instance.new("Frame")
+HeaderCover.Size = UDim2.new(1, 0, 0, 10)
+HeaderCover.Position = UDim2.new(0, 0, 1, -10)
+HeaderCover.BackgroundColor3 = Colors.Header
+HeaderCover.BorderSizePixel = 0
+HeaderCover.Parent = Header
 
-CreateCorner(Logo, 8)
+local HeaderLine = Instance.new("Frame")
+HeaderLine.Size = UDim2.new(1, -30, 0, 1)
+HeaderLine.Position = UDim2.new(0, 15, 1, -1)
+HeaderLine.BackgroundColor3 = Colors.Border
+HeaderLine.BackgroundTransparency = 0.2
+HeaderLine.BorderSizePixel = 0
+HeaderLine.Parent = Header
 
-local LogoStroke = CreateStroke(Logo, Theme.Accent, 0.45, 1)
+local AccentLine = Instance.new("Frame")
+AccentLine.Size = UDim2.new(0, 3, 0, 25)
+AccentLine.Position = UDim2.new(0, 17, 0, 13)
+AccentLine.BackgroundColor3 = Colors.Accent
+AccentLine.BorderSizePixel = 0
+AccentLine.Parent = Header
 
-local LogoText = CreateLabel(Logo, {
-    Size = UDim2.new(1, 0, 1, 0),
-    Text = "M",
-    TextColor3 = Theme.Accent,
-    TextSize = 17,
-    Font = Enum.Font.GothamBold,
-    TextXAlignment = Enum.TextXAlignment.Center,
-    TextYAlignment = Enum.TextYAlignment.Center
-})
+Corner(AccentLine, 2)
 
-local Title = CreateLabel(Header, {
+local Title = Label(Header, {
     Name = "Title",
-    Size = UDim2.new(0, 260, 0, 23),
-    Position = UDim2.new(0, 59, 0, 10),
-    Text = "MoonHub",
-    TextSize = 15,
+    Size = UDim2.new(1, -110, 0, 25),
+    Position = UDim2.new(0, 29, 0, 5),
+    Text = "Updates & Modules",
+    TextColor3 = Colors.Text,
+    TextSize = 17,
     Font = Enum.Font.GothamSemibold,
     TextXAlignment = Enum.TextXAlignment.Left,
     TextYAlignment = Enum.TextYAlignment.Center
 })
 
-local Subtitle = CreateLabel(Header, {
-    Size = UDim2.new(0, 260, 0, 17),
-    Position = UDim2.new(0, 59, 0, 31),
-    Text = "UPDATES  /  CHANGELOG",
-    TextColor3 = Theme.Muted,
-    TextSize = 9,
-    Font = Enum.Font.GothamMedium,
+local Subtitle = Label(Header, {
+    Size = UDim2.new(1, -110, 0, 15),
+    Position = UDim2.new(0, 30, 0, 29),
+    Text = "MoonHub  •  Changelog",
+    TextColor3 = Colors.Muted,
+    TextSize = 11,
+    Font = Enum.Font.Gotham,
     TextXAlignment = Enum.TextXAlignment.Left,
     TextYAlignment = Enum.TextYAlignment.Center
 })
@@ -144,30 +141,30 @@ local Subtitle = CreateLabel(Header, {
 local Close = Instance.new("TextButton")
 Close.Name = "Close"
 Close.Size = UDim2.new(0, 29, 0, 29)
-Close.Position = UDim2.new(1, -45, 0, 14)
-Close.BackgroundColor3 = Theme.Card
+Close.Position = UDim2.new(1, -43, 0, 11)
+Close.BackgroundColor3 = Colors.Card
 Close.BorderSizePixel = 0
 Close.Text = "×"
-Close.TextColor3 = Theme.SubText
-Close.TextSize = 20
+Close.TextColor3 = Colors.Muted
+Close.TextSize = 21
 Close.Font = Enum.Font.Gotham
 Close.AutoButtonColor = false
 Close.Parent = Header
 
-CreateCorner(Close, 7)
-CreateStroke(Close, Theme.Border, 0.35, 1)
+Corner(Close, 5)
+Stroke(Close, Colors.Border, 0.25, 1)
 
 Close.MouseEnter:Connect(function()
     TweenService:Create(Close, TweenInfo.new(0.12), {
-        BackgroundColor3 = Color3.fromRGB(105, 48, 57),
-        TextColor3 = Color3.fromRGB(255, 140, 150)
+        BackgroundColor3 = Color3.fromRGB(83, 39, 46),
+        TextColor3 = Color3.fromRGB(255, 150, 158)
     }):Play()
 end)
 
 Close.MouseLeave:Connect(function()
     TweenService:Create(Close, TweenInfo.new(0.12), {
-        BackgroundColor3 = Theme.Card,
-        TextColor3 = Theme.SubText
+        BackgroundColor3 = Colors.Card,
+        TextColor3 = Colors.Muted
     }):Play()
 end)
 
@@ -181,15 +178,15 @@ Close.MouseButton1Click:Connect(function()
     Closing = true
 
     TweenService:Create(Main, TweenInfo.new(
-        0.15,
+        0.16,
         Enum.EasingStyle.Quad,
         Enum.EasingDirection.In
     ), {
-        Size = UDim2.new(0, 500, 0, 420),
+        Size = UDim2.new(0, 540, 0, 435),
         BackgroundTransparency = 1
     }):Play()
 
-    task.wait(0.16)
+    task.wait(0.17)
 
     if ScreenGui.Parent then
         ScreenGui:Destroy()
@@ -245,53 +242,52 @@ end)
 
 local Content = Instance.new("Frame")
 Content.Name = "Content"
-Content.Size = UDim2.new(1, -32, 1, -139)
-Content.Position = UDim2.new(0, 16, 0, 73)
+Content.Size = UDim2.new(1, -30, 1, -137)
+Content.Position = UDim2.new(0, 15, 0, 64)
 Content.BackgroundTransparency = 1
 Content.Parent = Main
 
 local SectionHeader = Instance.new("Frame")
-SectionHeader.Size = UDim2.new(1, 0, 0, 23)
+SectionHeader.Size = UDim2.new(1, 0, 0, 26)
 SectionHeader.BackgroundTransparency = 1
 SectionHeader.Parent = Content
 
-local SectionTitle = CreateLabel(SectionHeader, {
-    Size = UDim2.new(0.65, 0, 1, 0),
+local SectionTitle = Label(SectionHeader, {
+    Size = UDim2.new(0.6, 0, 1, 0),
     Text = "Recent Changes",
-    TextColor3 = Theme.Text,
-    TextSize = 12,
+    TextColor3 = Colors.Text,
+    TextSize = 14,
     Font = Enum.Font.GothamSemibold,
     TextXAlignment = Enum.TextXAlignment.Left,
     TextYAlignment = Enum.TextYAlignment.Center
 })
 
-local ModuleCount = CreateLabel(SectionHeader, {
-    Size = UDim2.new(0.35, 0, 1, 0),
-    Position = UDim2.new(0.65, 0, 0, 0),
-    Text = tostring(#Modules) .. " MODULES",
-    TextColor3 = Theme.Muted,
-    TextSize = 9,
-    Font = Enum.Font.GothamMedium,
+local ModuleCount = Label(SectionHeader, {
+    Size = UDim2.new(0.4, 0, 1, 0),
+    Position = UDim2.new(0.6, 0, 0, 0),
+    Text = tostring(#Modules) .. " modules",
+    TextColor3 = Colors.Muted,
+    TextSize = 12,
+    Font = Enum.Font.Gotham,
     TextXAlignment = Enum.TextXAlignment.Right,
     TextYAlignment = Enum.TextYAlignment.Center
 })
 
 local ModulesPanel = Instance.new("ScrollingFrame")
 ModulesPanel.Name = "ModulesPanel"
-ModulesPanel.Size = UDim2.new(1, 0, 1, -31)
-ModulesPanel.Position = UDim2.new(0, 0, 0, 31)
-ModulesPanel.BackgroundColor3 = Theme.Panel
+ModulesPanel.Size = UDim2.new(1, 0, 1, -34)
+ModulesPanel.Position = UDim2.new(0, 0, 0, 34)
+ModulesPanel.BackgroundColor3 = Colors.Panel
 ModulesPanel.BorderSizePixel = 0
-ModulesPanel.ScrollBarThickness = 3
-ModulesPanel.ScrollBarImageColor3 = Theme.Accent
-ModulesPanel.ScrollBarImageTransparency = 0.2
+ModulesPanel.ScrollBarThickness = 4
+ModulesPanel.ScrollBarImageColor3 = Colors.Accent
+ModulesPanel.ScrollBarImageTransparency = 0.15
 ModulesPanel.ScrollingDirection = Enum.ScrollingDirection.Y
 ModulesPanel.CanvasSize = UDim2.new(0, 0, 0, 0)
-ModulesPanel.AutomaticCanvasSize = Enum.AutomaticSize.None
 ModulesPanel.Parent = Content
 
-CreateCorner(ModulesPanel, 7)
-CreateStroke(ModulesPanel, Theme.Border, 0.35, 1)
+Corner(ModulesPanel, 6)
+Stroke(ModulesPanel, Colors.Border, 0.25, 1)
 
 local Padding = Instance.new("UIPadding")
 Padding.PaddingTop = UDim.new(0, 10)
@@ -301,7 +297,7 @@ Padding.PaddingRight = UDim.new(0, 10)
 Padding.Parent = ModulesPanel
 
 local Layout = Instance.new("UIListLayout")
-Layout.Padding = UDim.new(0, 7)
+Layout.Padding = UDim.new(0, 8)
 Layout.SortOrder = Enum.SortOrder.LayoutOrder
 Layout.Parent = ModulesPanel
 
@@ -318,71 +314,73 @@ Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(UpdateCanvas)
 
 local StatusColors = {
     Added = {
-        Text = Color3.fromRGB(113, 224, 157),
-        Accent = Color3.fromRGB(78, 187, 121),
-        Background = Color3.fromRGB(30, 57, 43)
+        Text = Color3.fromRGB(126, 230, 157),
+        Accent = Color3.fromRGB(77, 184, 111),
+        Background = Color3.fromRGB(37, 65, 46)
     },
 
     Updated = {
-        Text = Color3.fromRGB(130, 180, 255),
-        Accent = Color3.fromRGB(87, 143, 230),
-        Background = Color3.fromRGB(31, 45, 67)
+        Text = Color3.fromRGB(137, 190, 255),
+        Accent = Color3.fromRGB(83, 140, 222),
+        Background = Color3.fromRGB(37, 53, 76)
     },
 
     Fixed = {
-        Text = Color3.fromRGB(255, 205, 120),
-        Accent = Color3.fromRGB(218, 162, 77),
-        Background = Color3.fromRGB(61, 48, 30)
+        Text = Color3.fromRGB(255, 207, 125),
+        Accent = Color3.fromRGB(210, 158, 76),
+        Background = Color3.fromRGB(68, 53, 34)
     },
 
     Removed = {
-        Text = Color3.fromRGB(255, 133, 143),
-        Accent = Color3.fromRGB(214, 91, 104),
-        Background = Color3.fromRGB(61, 34, 39)
+        Text = Color3.fromRGB(255, 139, 145),
+        Accent = Color3.fromRGB(205, 82, 91),
+        Background = Color3.fromRGB(68, 38, 42)
     },
 
     Beta = {
-        Text = Color3.fromRGB(207, 166, 255),
-        Accent = Color3.fromRGB(164, 115, 226),
-        Background = Color3.fromRGB(49, 37, 66)
+        Text = Color3.fromRGB(216, 171, 255),
+        Accent = Color3.fromRGB(157, 108, 210),
+        Background = Color3.fromRGB(57, 41, 73)
     }
 }
 
 for Index, module in ipairs(Modules) do
     local StatusName = tostring(module.Status or "Updated")
-    local Colors = StatusColors[StatusName] or {
-        Text = Theme.SubText,
-        Accent = Theme.Muted,
-        Background = Color3.fromRGB(38, 39, 45)
+
+    local Status = StatusColors[StatusName] or {
+        Text = Colors.Description,
+        Accent = Colors.Muted,
+        Background = Color3.fromRGB(43, 43, 49)
     }
 
     local Card = Instance.new("Frame")
     Card.Name = tostring(module.Name or ("Module_" .. Index))
-    Card.Size = UDim2.new(1, 0, 0, 76)
-    Card.BackgroundColor3 = Theme.Card
+    Card.Size = UDim2.new(1, 0, 0, 78)
+    Card.BackgroundColor3 = Colors.Card
     Card.BorderSizePixel = 0
     Card.LayoutOrder = Index
     Card.Parent = ModulesPanel
 
-    CreateCorner(Card, 6)
-    local CardStroke = CreateStroke(Card, Theme.Border, 0.4, 1)
+    Corner(Card, 5)
+
+    local CardStroke = Stroke(Card, Colors.Border, 0.25, 1)
 
     local Accent = Instance.new("Frame")
-    Accent.Size = UDim2.new(0, 3, 0, 36)
-    Accent.Position = UDim2.new(0, 0, 0.5, -18)
-    Accent.BackgroundColor3 = Colors.Accent
+    Accent.Size = UDim2.new(0, 3, 0, 42)
+    Accent.Position = UDim2.new(0, 0, 0.5, -21)
+    Accent.BackgroundColor3 = Status.Accent
     Accent.BorderSizePixel = 0
     Accent.Parent = Card
 
-    CreateCorner(Accent, 2)
+    Corner(Accent, 2)
 
-    local ModuleName = CreateLabel(Card, {
+    local ModuleName = Label(Card, {
         Name = "ModuleName",
-        Size = UDim2.new(1, -145, 0, 23),
-        Position = UDim2.new(0, 14, 0, 8),
+        Size = UDim2.new(1, -155, 0, 25),
+        Position = UDim2.new(0, 15, 0, 7),
         Text = tostring(module.Name or "Unknown"),
-        TextColor3 = Theme.Text,
-        TextSize = 13,
+        TextColor3 = Colors.Text,
+        TextSize = 14,
         Font = Enum.Font.GothamSemibold,
         TextTruncate = Enum.TextTruncate.AtEnd,
         TextXAlignment = Enum.TextXAlignment.Left,
@@ -391,32 +389,32 @@ for Index, module in ipairs(Modules) do
 
     local StatusBadge = Instance.new("Frame")
     StatusBadge.Name = "StatusBadge"
-    StatusBadge.Size = UDim2.new(0, 100, 0, 23)
-    StatusBadge.Position = UDim2.new(1, -112, 0, 8)
-    StatusBadge.BackgroundColor3 = Colors.Background
+    StatusBadge.Size = UDim2.new(0, 108, 0, 23)
+    StatusBadge.Position = UDim2.new(1, -120, 0, 8)
+    StatusBadge.BackgroundColor3 = Status.Background
     StatusBadge.BorderSizePixel = 0
     StatusBadge.Parent = Card
 
-    CreateCorner(StatusBadge, 5)
+    Corner(StatusBadge, 4)
 
-    local StatusLabel = CreateLabel(StatusBadge, {
+    local StatusLabel = Label(StatusBadge, {
         Size = UDim2.new(1, -8, 1, 0),
         Position = UDim2.new(0, 4, 0, 0),
         Text = string.upper(StatusName),
-        TextColor3 = Colors.Text,
-        TextSize = 9,
+        TextColor3 = Status.Text,
+        TextSize = 10,
         Font = Enum.Font.GothamSemibold,
         TextXAlignment = Enum.TextXAlignment.Center,
         TextYAlignment = Enum.TextYAlignment.Center
     })
 
-    local Description = CreateLabel(Card, {
+    local Description = Label(Card, {
         Name = "Description",
-        Size = UDim2.new(1, -28, 0, 30),
-        Position = UDim2.new(0, 14, 0, 36),
+        Size = UDim2.new(1, -30, 0, 32),
+        Position = UDim2.new(0, 15, 0, 38),
         Text = tostring(module.Description or ""),
-        TextColor3 = Theme.SubText,
-        TextSize = 12,
+        TextColor3 = Colors.Description,
+        TextSize = 13,
         Font = Enum.Font.SourceSans,
         TextWrapped = true,
         TextTruncate = Enum.TextTruncate.AtEnd,
@@ -429,7 +427,7 @@ for Index, module in ipairs(Modules) do
             Card,
             TweenInfo.new(0.13, Enum.EasingStyle.Quad),
             {
-                BackgroundColor3 = Theme.CardHover
+                BackgroundColor3 = Colors.CardHover
             }
         ):Play()
 
@@ -437,8 +435,8 @@ for Index, module in ipairs(Modules) do
             CardStroke,
             TweenInfo.new(0.13),
             {
-                Color = Colors.Accent,
-                Transparency = 0.25
+                Color = Status.Accent,
+                Transparency = 0.15
             }
         ):Play()
     end)
@@ -448,7 +446,7 @@ for Index, module in ipairs(Modules) do
             Card,
             TweenInfo.new(0.13, Enum.EasingStyle.Quad),
             {
-                BackgroundColor3 = Theme.Card
+                BackgroundColor3 = Colors.Card
             }
         ):Play()
 
@@ -456,8 +454,8 @@ for Index, module in ipairs(Modules) do
             CardStroke,
             TweenInfo.new(0.13),
             {
-                Color = Theme.Border,
-                Transparency = 0.4
+                Color = Colors.Border,
+                Transparency = 0.25
             }
         ):Play()
     end)
@@ -466,32 +464,21 @@ end
 UpdateCanvas()
 
 local FooterLine = Instance.new("Frame")
-FooterLine.Size = UDim2.new(1, -32, 0, 1)
-FooterLine.Position = UDim2.new(0, 16, 1, -58)
-FooterLine.BackgroundColor3 = Theme.Border
+FooterLine.Size = UDim2.new(1, -30, 0, 1)
+FooterLine.Position = UDim2.new(0, 15, 1, -59)
+FooterLine.BackgroundColor3 = Colors.Border
 FooterLine.BackgroundTransparency = 0.2
 FooterLine.BorderSizePixel = 0
 FooterLine.Parent = Main
 
-local FooterIcon = CreateLabel(Main, {
-    Size = UDim2.new(0, 20, 0, 20),
-    Position = UDim2.new(0, 18, 1, -47),
-    Text = "↗",
-    TextColor3 = Theme.Accent,
-    TextSize = 15,
-    Font = Enum.Font.GothamSemibold,
-    TextXAlignment = Enum.TextXAlignment.Center,
-    TextYAlignment = Enum.TextYAlignment.Center
-})
-
-local Footer = CreateLabel(Main, {
-    Size = UDim2.new(1, -55, 0, 20),
-    Position = UDim2.new(0, 41, 1, -47),
-    Text = "Get the latest version using the MoonHub loader",
-    TextColor3 = Theme.SubText,
-    TextSize = 11,
+local Footer = Label(Main, {
+    Size = UDim2.new(1, -30, 0, 22),
+    Position = UDim2.new(0, 15, 1, -50),
+    Text = "You can get the latest version using the MoonHub loader",
+    TextColor3 = Colors.Description,
+    TextSize = 12,
     Font = Enum.Font.SourceSans,
-    TextXAlignment = Enum.TextXAlignment.Left,
+    TextXAlignment = Enum.TextXAlignment.Center,
     TextYAlignment = Enum.TextYAlignment.Center
 })
 
@@ -501,13 +488,13 @@ if LastUpdateValue == nil then
     LastUpdateValue = "Unknown"
 end
 
-local LastUpdate = CreateLabel(Main, {
-    Size = UDim2.new(1, -32, 0, 17),
-    Position = UDim2.new(0, 16, 1, -25),
-    Text = "LAST UPDATE  ·  " .. tostring(LastUpdateValue),
-    TextColor3 = Theme.Muted,
-    TextSize = 9,
-    Font = Enum.Font.GothamMedium,
+local LastUpdate = Label(Main, {
+    Size = UDim2.new(1, -30, 0, 18),
+    Position = UDim2.new(0, 15, 1, -26),
+    Text = "Last Update: " .. tostring(LastUpdateValue),
+    TextColor3 = Colors.Muted,
+    TextSize = 11,
+    Font = Enum.Font.SourceSans,
     TextXAlignment = Enum.TextXAlignment.Center,
     TextYAlignment = Enum.TextYAlignment.Center
 })
@@ -515,14 +502,14 @@ local LastUpdate = CreateLabel(Main, {
 local TargetSize = Main.Size
 local TargetPosition = Main.Position
 
-Main.Size = UDim2.new(0, 490, 0, 415)
-Main.Position = UDim2.new(0.5, -245, 0.5, -207)
+Main.Size = UDim2.new(0, 540, 0, 435)
+Main.Position = UDim2.new(0.5, -270, 0.5, -217)
 Main.BackgroundTransparency = 1
 
 TweenService:Create(
     Main,
     TweenInfo.new(
-        0.24,
+        0.22,
         Enum.EasingStyle.Quint,
         Enum.EasingDirection.Out
     ),
