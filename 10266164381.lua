@@ -1,7 +1,14 @@
-local repo = "https://raw.githubusercontent.com/Kam41514/Library/main/"
+local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
+
 local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
-local ThemeManager = loadstring(game:HttpGet(repo .. "ThemeManager.lua"))()
-local SaveManager = loadstring(game:HttpGet(repo .. "SaveManager.lua"))()
+
+local ThemeManager = loadstring(
+    game:HttpGet(repo .. "addons/ThemeManager.lua")
+)()
+
+local SaveManager = loadstring(
+    game:HttpGet(repo .. "addons/SaveManager.lua")
+)()
 
 local Window = Library:CreateWindow({
     Title = "MoonHub | Beta",
@@ -66,11 +73,11 @@ end
 
 
 -- Combat Tab
-
-Groupboxes.MouseControlling = Tabs.Combat:AddLeftGroupbox("Auto Clicking (Fixing)", "mouse")
 Groupboxes.InfiniteScripts = Tabs.Combat:AddLeftGroupbox("Player Scripts", "user")
 Groupboxes.Blocking = Tabs.Combat:AddRightGroupbox("Better Blocking", "user")
 Groupboxes.Aimbot = Tabs.Combat:AddRightGroupbox("Silent Aim", "crosshair")
+
+-- Faking Stats
 
 -- Blocking
 State.AlwaysPb = false
@@ -250,131 +257,51 @@ end
 
 
 function funcs.getClosestPlayer()
-
-    if not Options.TargetPart.Value then
+    if not Options
+        or not Options.TargetPart
+        or Options.TargetPart.Value == nil then
         return nil
     end
 
     local closest = nil
-    local closestDistance =
-        Options.Radius.Value or 2000
 
-    local mousePosition =
-        funcs.getMousePosition()
+    local radiusOption = Options.Radius
+    local closestDistance = radiusOption
+        and tonumber(radiusOption.Value)
+        or 2000
 
-    local targetPartOption =
-        Options.TargetPart.Value
+    local mousePosition = funcs.getMousePosition()
 
-    local visibleCheck =
-        Toggles.VisibleCheck.Value
-
-    for _, player in ipairs(
-        SupportServices.GetPlayers(
-            Services.Players
-        )
-    ) do
-
-        if player == Services.LocalPlayer then
-            continue
-        end
-
-        local character =
-            player.Character
-
-        if not character then
-            continue
-        end
-
-        local humanoid =
-            SupportServices.FindFirstChild(
-                character,
-                "Humanoid"
-            )
-
-        if not humanoid
-            or humanoid.Health <= 0 then
-            continue
-        end
-
-        local targetPartName =
-            targetPartOption
-
-        if targetPartName == "Random" then
-
-            targetPartName =
-                State.ValidTargetParts[
-                    math.random(
-                        1,
-                        #State.ValidTargetParts
-                    )
-                ]
-
-        end
-
-        local targetPart =
-            SupportServices.FindFirstChild(
-                character,
-                targetPartName
-            )
-
-        if not targetPart then
-            continue
-        end
-
-        local screenPosition, onScreen =
-            funcs.getPositionOnScreen(
-                targetPart.Position
-            )
-
-        if not onScreen then
-            continue
-        end
-
-        local distance =
-            (
-                mousePosition
-                - screenPosition
-            ).Magnitude
-
-        if distance < closestDistance then
-
-            if not visibleCheck
-                or funcs.IsPlayerVisible(player) then
-
-                closest = targetPart
-                closestDistance = distance
-
-            end
-        end
-    end
-
-    return closest
-end
-
-
-function funcs.getClosestPlayer()
-    if not Options.TargetPart.Value then
+    if not mousePosition then
         return nil
     end
 
-    local closest
-    local closestDistance = Options.Radius.Value or 2000
-    local mousePosition = funcs.getMousePosition()
     local targetPartOption = Options.TargetPart.Value
-    local visibleCheck = Toggles.VisibleCheck.Value
 
-    for _, player in next, SupportServices.GetPlayers(Services.Players) do
+    local visibleCheck =
+        Toggles
+        and Toggles.VisibleCheck
+        and Toggles.VisibleCheck.Value
+        or false
+
+    local players = SupportServices.GetPlayers(Services.Players)
+
+    for _, player in ipairs(players) do
         if player == Services.LocalPlayer then
             continue
         end
 
-
         local character = player.Character
+
         if not character then
             continue
         end
 
-        local humanoid = SupportServices.FindFirstChild(character, "Humanoid")
+        local humanoid = SupportServices.FindFirstChild(
+            character,
+            "Humanoid"
+        )
+
         if not humanoid or humanoid.Health <= 0 then
             continue
         end
@@ -382,24 +309,36 @@ function funcs.getClosestPlayer()
         local targetPartName = targetPartOption
 
         if targetPartName == "Random" then
-            targetPartName = State.ValidTargetParts[
-                math.random(1, #State.ValidTargetParts)
+            local validParts = State.ValidTargetParts
+
+            if not validParts or #validParts == 0 then
+                continue
+            end
+
+            targetPartName = validParts[
+                math.random(1, #validParts)
             ]
         end
 
-        local targetPart = SupportServices.FindFirstChild(character, targetPartName)
-        if not targetPart then
+        local targetPart = SupportServices.FindFirstChild(
+            character,
+            targetPartName
+        )
+
+        if not targetPart or not targetPart:IsA("BasePart") then
             continue
         end
 
         local screenPosition, onScreen =
             funcs.getPositionOnScreen(targetPart.Position)
 
-        if not onScreen then
+        if not onScreen or not screenPosition then
             continue
         end
 
-        local distance = (mousePosition - screenPosition).Magnitude
+        local distance = (
+            mousePosition - screenPosition
+        ).Magnitude
 
         if distance < closestDistance then
             if not visibleCheck or funcs.IsPlayerVisible(player) then
@@ -839,7 +778,17 @@ Groupboxes.InfiniteScripts:AddToggle(
     }
 )
 
+
 State.InitialJumpCount = nil
+State.MaxJumpCount = nil
+State.StaminaMode = "Infinite Value"
+State.StaminaRegenDelay = 2
+State.StaminaRegenElapsed = 0
+State.LegitRegenMin = 4
+State.LegitRegenMax = 7
+State.LastJumpCount = nil
+State.NextLegitRegen = nil
+
 State.JumpCounters = Services.ReplicatedStorage.Settings[Services.Players.LocalPlayer.Name].JumpCounters
 
 Modules.InfiniteStamina =
@@ -855,37 +804,174 @@ Modules.InfiniteStamina =
 
         if not Toggles.InfiniteStamina.Value then
             State.InitialJumpCount = nil
+            State.MaxJumpCount = nil
+            State.StaminaRegenElapsed = 0
+            State.LastJumpCount = nil
+            State.NextLegitRegen = nil
             return
         end
 
         BaseLocals.currentValue = State.JumpCounters.Value
+        State.InitialJumpCount = math.max(BaseLocals.currentValue, 1)
+        State.MaxJumpCount = State.InitialJumpCount
+        State.LastJumpCount = State.JumpCounters.Value
+        State.StaminaRegenElapsed = 0
+        State.NextLegitRegen = math.random(
+            State.LegitRegenMin,
+            State.LegitRegenMax
+        )
 
-        if BaseLocals.currentValue <= 0 then
-            State.InitialJumpCount = 1
-        else
-            State.InitialJumpCount = BaseLocals.currentValue
+        if State.StaminaMode == "Infinite Value" then
+            State.JumpCounters.Value = State.MaxJumpCount
         end
 
         ConnectionManager.Connect(
             "InfiniteStamina",
             Services.RunService.Heartbeat,
-            function()
+            function(deltaTime)
 
                 if not Toggles.InfiniteStamina.Value then
                     ConnectionManager.Disconnect("InfiniteStamina")
-                    State.InitialJumpCount = nil
                     return
                 end
 
-                if State.JumpCounters then
-                    State.JumpCounters.Value =
-                        State.InitialJumpCount
+                if not State.JumpCounters then
+                    return
+                end
+
+                local currentValue = State.JumpCounters.Value
+
+                if State.StaminaMode == "Infinite Value" then
+                    State.JumpCounters.Value = State.MaxJumpCount
+                    State.LastJumpCount = State.MaxJumpCount
+                    return
+                end
+
+                if State.StaminaMode == "Custom Stamina Regen" then
+                    if State.LastJumpCount == nil then
+                        State.LastJumpCount = currentValue
+                    end
+
+                    if currentValue < State.LastJumpCount then
+                        State.StaminaRegenElapsed = 0
+                    end
+
+                    State.LastJumpCount = currentValue
+
+                    if currentValue >= State.MaxJumpCount then
+                        State.StaminaRegenElapsed = 0
+                        return
+                    end
+
+                    State.StaminaRegenElapsed =
+                        State.StaminaRegenElapsed + deltaTime
+
+                    if State.StaminaRegenElapsed >= State.StaminaRegenDelay then
+                        State.StaminaRegenElapsed =
+                            State.StaminaRegenElapsed - State.StaminaRegenDelay
+
+                        State.JumpCounters.Value = math.min(
+                            currentValue + 1,
+                            State.MaxJumpCount
+                        )
+
+                        State.LastJumpCount = State.JumpCounters.Value
+                    end
+
+                elseif State.StaminaMode == "Legit Value" then
+                    if State.LastJumpCount == nil then
+                        State.LastJumpCount = currentValue
+                    end
+
+                    if currentValue < State.LastJumpCount then
+                        State.StaminaRegenElapsed = 0
+                        State.NextLegitRegen = math.random(
+                            State.LegitRegenMin,
+                            State.LegitRegenMax
+                        )
+                    end
+
+                    State.LastJumpCount = currentValue
+
+                    if currentValue >= State.MaxJumpCount then
+                        State.StaminaRegenElapsed = 0
+                        return
+                    end
+
+                    State.StaminaRegenElapsed =
+                        State.StaminaRegenElapsed + deltaTime
+
+                    if State.StaminaRegenElapsed >= State.NextLegitRegen then
+                        State.StaminaRegenElapsed = 0
+
+                        State.JumpCounters.Value = math.min(
+                            currentValue + 1,
+                            State.MaxJumpCount
+                        )
+
+                        State.LastJumpCount = State.JumpCounters.Value
+
+                        State.NextLegitRegen = math.random(
+                            State.LegitRegenMin,
+                            State.LegitRegenMax
+                        )
+                    end
                 end
 
             end
         )
 
     end)
+
+Modules.StaminaMode =
+    Groupboxes.InfiniteScripts:AddDropdown(
+        "StaminaMode",
+        {
+            Text = "Stamina Mode",
+            Values = {
+                "Infinite Value",
+                "Custom Stamina Regen",
+                "Legit Value"
+            },
+            Default = "Infinite Value",
+        }
+    ):OnChanged(function(value)
+
+        State.StaminaMode = value
+
+        if not Toggles.InfiniteStamina.Value then
+            return
+        end
+
+        State.StaminaRegenElapsed = 0
+        State.LastJumpCount = State.JumpCounters.Value
+        State.NextLegitRegen = math.random(
+            State.LegitRegenMin,
+            State.LegitRegenMax
+        )
+
+        if value == "Infinite Value" then
+            State.JumpCounters.Value = State.MaxJumpCount or 1
+        end
+
+    end)
+
+Modules.StaminaRegenDelay =
+    Groupboxes.InfiniteScripts:AddSlider(
+        "StaminaRegenDelay",
+        {
+            Text = "Custom Regen Seconds",
+            Default = 2,
+            Min = 1,
+            Max = 4,
+            Rounding = 0,
+        }
+    ):OnChanged(function(value)
+        State.StaminaRegenDelay = value
+        State.StaminaRegenElapsed = 0
+    end)
+
+
 
 -- Player
 Groupboxes.IdentitySpoofer = Tabs.Player:AddLeftGroupbox("Identity Spoofer", "scan-face")
@@ -2171,477 +2257,361 @@ if State.ObserveEnabled then
 end
 
 State.PlayerESPObjects = {}
-
 State.PlayerESPEnabled = false
 State.PlayerESPShowLocation = true
+State.PlayerESPShowHealth = true
+State.PlayerESPShowRange = true
+State.PlayerESPShowRaces = true
+State.PlayerESPShowChakra = true
 State.PlayerESPShowLocationMode = "Show Closest Chakra Point"
 State.PlayerESPMaxDistance = 2000
+State.PlayerESPCheckInterval = 1
 
-State.ChakraPointsFolder =
-    workspace:WaitForChild("ChakraPoints")
-
-State.LocationsFolder =
-    workspace:WaitForChild("Locations")
-
+State.ChakraPointsFolder = workspace:WaitForChild("ChakraPoints")
+State.LocationsFolder = workspace:WaitForChild("Locations")
 
 function funcs.RemovePlayerESPFromPlayer(plr)
-
     local data = State.PlayerESPObjects[plr]
-
     if data then
-
         if data.RenderConnectionName then
-            ConnectionManager.Disconnect(
-                data.RenderConnectionName
-            )
+            ConnectionManager.Disconnect(data.RenderConnectionName)
         end
-
-        if data.Highlight then
-            data.Highlight:Destroy()
-        end
-
-        if data.Billboard then
-            data.Billboard:Destroy()
-        end
-
+        if data.Highlight then data.Highlight:Destroy() end
+        if data.Billboard then data.Billboard:Destroy() end
         State.PlayerESPObjects[plr] = nil
     end
-
-    ConnectionManager.Disconnect(
-        "PlayerESP_Character_" .. plr.UserId
-    )
+    ConnectionManager.Disconnect("PlayerESP_Character_" .. plr.UserId)
 end
 
-
 function funcs.SetupCharacter(plr, char)
+    if not State.PlayerESPEnabled or not plr
+        or plr == Services.LocalPlayer
+        or not char or not char.Parent then return end
 
-    if not State.PlayerESPEnabled then
-        return
-    end
+    local root = char:FindFirstChild("HumanoidRootPart")
+    local humanoid = char:FindFirstChildOfClass("Humanoid")
+    if not root or not humanoid then return end
 
-    if not plr or plr == Services.LocalPlayer then
-        return
-    end
-
-    if not char or not char.Parent then
-        return
-    end
-
-    local root =
-        char:WaitForChild(
-            "HumanoidRootPart",
-            5
-        )
-
-    local humanoid =
-        char:WaitForChild(
-            "Humanoid",
-            5
-        )
-
-    if not root or not humanoid then
-        return
-    end
-
-    local old =
-        State.PlayerESPObjects[plr]
-
+    local old = State.PlayerESPObjects[plr]
     if old then
-
         if old.RenderConnectionName then
-            ConnectionManager.Disconnect(
-                old.RenderConnectionName
-            )
+            ConnectionManager.Disconnect(old.RenderConnectionName)
         end
-
-        if old.Highlight then
-            old.Highlight:Destroy()
-        end
-
-        if old.Billboard then
-            old.Billboard:Destroy()
-        end
-
+        if old.Highlight then old.Highlight:Destroy() end
+        if old.Billboard then old.Billboard:Destroy() end
         State.PlayerESPObjects[plr] = nil
     end
 
-    local highlight =
-        Instance.new("Highlight")
-
+    local highlight = Instance.new("Highlight")
     highlight.Name = "PlayerESP"
     highlight.FillTransparency = 1
     highlight.OutlineTransparency = 0
-    highlight.OutlineColor =
-        Color3.fromRGB(255, 0, 0)
-
-    highlight.DepthMode =
-        Enum.HighlightDepthMode.AlwaysOnTop
-
+    highlight.OutlineColor = Color3.fromRGB(255, 0, 0)
+    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    highlight.Adornee = char
     highlight.Parent = char
 
-    local billboard =
-        Instance.new("BillboardGui")
-
+    local billboard = Instance.new("BillboardGui")
     billboard.Name = "PlayerESPText"
-
-    billboard.Size =
-        UDim2.new(0, 200, 0, 50)
-
-    billboard.StudsOffset =
-        Vector3.new(0, 3, 0)
-
+    billboard.Size = UDim2.fromOffset(240, 90)
+    billboard.StudsOffset = Vector3.new(0, 4.1, 0)
     billboard.AlwaysOnTop = true
+    billboard.Adornee = root
     billboard.Parent = root
 
-    local text =
-        Instance.new("TextLabel")
-
-    text.Size =
-        UDim2.new(1, 0, 1, 0)
-
+    local text = Instance.new("TextLabel")
+    text.Name = "ESPText"
+    text.Size = UDim2.fromScale(1, 1)
     text.BackgroundTransparency = 1
     text.TextStrokeTransparency = 0
+    text.TextStrokeColor3 = Color3.new(0, 0, 0)
     text.TextSize = 14
-
-    text.Font =
-        Enum.Font.SourceSansBold
-
-    text.TextColor3 =
-        Color3.fromRGB(255, 0, 0)
-
+    text.Font = Enum.Font.SourceSansBold
+    text.TextColor3 = Color3.fromRGB(255, 0, 0)
+    text.TextWrapped = true
+    text.TextXAlignment = Enum.TextXAlignment.Center
+    text.TextYAlignment = Enum.TextYAlignment.Center
+    text.RichText = true
     text.Parent = billboard
 
-    local renderConnectionName =
-        "PlayerESP_Render_" .. plr.UserId
+    local renderName = "PlayerESP_Render_" .. plr.UserId
 
     ConnectionManager.Connect(
-        renderConnectionName,
+        renderName,
         Services.RunService.RenderStepped,
         function()
-
             if not State.PlayerESPEnabled then
-                ConnectionManager.Disconnect(
-                    renderConnectionName
-                )
+                ConnectionManager.Disconnect(renderName)
                 return
             end
 
-            if not char.Parent then
-                ConnectionManager.Disconnect(
-                    renderConnectionName
-                )
-                return
-            end
-
-            if humanoid.Health <= 0 then
-                highlight.Enabled = false
+            if not char.Parent or not root.Parent
+                or not humanoid.Parent or humanoid.Health <= 0 then
                 billboard.Enabled = false
+                highlight.Enabled = false
                 return
             end
 
-            local localCharacter =
-                Services.LocalPlayer.Character
-
-            local localRoot =
-                localCharacter
-                and localCharacter:FindFirstChild(
-                    "HumanoidRootPart"
-                )
+            local localChar = Services.LocalPlayer.Character
+            local localRoot = localChar
+                and localChar:FindFirstChild("HumanoidRootPart")
 
             if not localRoot then
-                highlight.Enabled = false
                 billboard.Enabled = false
+                highlight.Enabled = false
                 return
             end
 
-            local distance =
-                math.floor(
-                    (
-                        localRoot.Position
-                        - root.Position
-                    ).Magnitude
-                )
+            local distance = math.floor(
+                (localRoot.Position - root.Position).Magnitude
+            )
 
             if distance > State.PlayerESPMaxDistance then
-                highlight.Enabled = false
                 billboard.Enabled = false
+                highlight.Enabled = false
                 return
             end
 
-            highlight.Enabled = true
             billboard.Enabled = true
+            highlight.Enabled = true
 
             local locationName = ""
 
             if State.PlayerESPShowLocation then
+                if State.PlayerESPShowLocationMode == "Show Closest Chakra Point" then
+                    local nearest
+                    local nearestDistance = math.huge
 
-                if State.PlayerESPShowLocationMode
-                    == "Show Closest Chakra Point" then
+                    for _, point in ipairs(State.ChakraPointsFolder:GetChildren()) do
+                        if point.Name == "ChakraPoint" then
+                            local part
+                            if point:IsA("BasePart") then
+                                part = point
+                            elseif point:IsA("Model") then
+                                part = point.PrimaryPart
+                                    or point:FindFirstChildWhichIsA("BasePart", true)
+                            end
 
-                    local nearestChakraPoint = nil
-                    local nearestChakraDistance = math.huge
-
-                    for _, chakraPoint in ipairs(
-                        State.ChakraPointsFolder:GetChildren()
-                    ) do
-
-                        if chakraPoint.Name == "ChakraPoint" then
-
-                            local pointPart =
-                                chakraPoint.PrimaryPart
-                                or chakraPoint:FindFirstChildWhichIsA(
-                                    "BasePart",
-                                    true
-                                )
-
-                            if pointPart then
-
-                                local pointDistance =
-                                    (
-                                        root.Position
-                                        - pointPart.Position
-                                    ).Magnitude
-
-                                if pointDistance
-                                    < nearestChakraDistance then
-
-                                    nearestChakraDistance =
-                                        pointDistance
-
-                                    nearestChakraPoint =
-                                        chakraPoint
+                            if part then
+                                local d = (root.Position - part.Position).Magnitude
+                                if d < nearestDistance then
+                                    nearestDistance = d
+                                    nearest = point
                                 end
                             end
                         end
                     end
 
-                    if nearestChakraPoint then
-
-                        local pointNameValue =
-                            nearestChakraPoint:FindFirstChild(
-                                "PointName",
-                                true
-                            )
-
-                        if pointNameValue
-                            and pointNameValue:IsA("StringValue") then
-
-                            locationName =
-                                pointNameValue.Value
-
+                    if nearest then
+                        local pointName = nearest:FindFirstChild("PointName", true)
+                        if pointName and pointName:IsA("StringValue") then
+                            locationName = pointName.Value
                         end
                     end
-
-                elseif State.PlayerESPShowLocationMode
-                    == "Show Location Attribute" then
-
-                    local nearestLocation = nil
+                else
+                    local nearest
                     local nearestDistance = math.huge
 
-                    for _, location in ipairs(
-                        State.LocationsFolder:GetChildren()
-                    ) do
-
-                        local locationPart = nil
-
+                    for _, location in ipairs(State.LocationsFolder:GetChildren()) do
+                        local part
                         if location:IsA("BasePart") then
-
-                            locationPart = location
-
+                            part = location
                         elseif location:IsA("Model") then
-
-                            locationPart =
-                                location.PrimaryPart
-                                or location:FindFirstChildWhichIsA(
-                                    "BasePart",
-                                    true
-                                )
-
+                            part = location.PrimaryPart
+                                or location:FindFirstChildWhichIsA("BasePart", true)
                         elseif location:IsA("Folder") then
-
-                            locationPart =
-                                location:FindFirstChildWhichIsA(
-                                    "BasePart",
-                                    true
-                                )
-
+                            part = location:FindFirstChildWhichIsA("BasePart", true)
                         end
 
-                        if locationPart then
-
-                            local locationDistance =
-                                (
-                                    root.Position
-                                    - locationPart.Position
-                                ).Magnitude
-
-                            if locationDistance
-                                < nearestDistance then
-
-                                nearestDistance =
-                                    locationDistance
-
-                                nearestLocation =
-                                    location
-
+                        if part then
+                            local d = (root.Position - part.Position).Magnitude
+                            if d < nearestDistance then
+                                nearestDistance = d
+                                nearest = location
                             end
                         end
                     end
 
-                    if nearestLocation then
-
-                        locationName =
-                            nearestLocation.Name
-
-                    end
+                    if nearest then locationName = nearest.Name end
                 end
             end
 
-            if locationName ~= "" then
+            local displayName = humanoid.DisplayName or ""
+            local isGreen = string.find(displayName, "🌱", 1, true) ~= nil
+            local displayColor = isGreen
+                and Color3.fromRGB(0, 255, 0)
+                or Color3.fromRGB(255, 0, 0)
 
-                text.Text =
-                    "["
-                    .. locationName
-                    .. "]\n"
-                    .. plr.Name
-                    .. "\n❤ "
+            text.TextColor3 = displayColor
+            highlight.OutlineColor = displayColor
+
+            local lines = {}
+            table.insert(lines, plr.Name)
+
+            local healthValue = ""
+            local chakraValue = ""
+
+            if State.PlayerESPShowHealth then
+                healthValue = "❤ "
                     .. math.floor(humanoid.Health)
-                    .. "/"
-                    .. math.floor(humanoid.MaxHealth)
-                    .. " | "
-                    .. distance
-                    .. " st"
-
-            else
-
-                text.Text =
-                    plr.Name
-                    .. "\n❤ "
-                    .. math.floor(humanoid.Health)
-                    .. "/"
-                    .. math.floor(humanoid.MaxHealth)
-                    .. " | "
-                    .. distance
-                    .. " st"
-
+                    .. "/" .. math.floor(humanoid.MaxHealth)
             end
 
+            local backpack = plr:FindFirstChildOfClass("Backpack")
+            local chakra = backpack and backpack:FindFirstChild("chakra")
+            local maxChakra = backpack and backpack:FindFirstChild("maxChakra")
+
+            chakra = chakra or char:FindFirstChild("chakra", true)
+            maxChakra = maxChakra or char:FindFirstChild("maxChakra", true)
+
+            if State.PlayerESPShowChakra and chakra and maxChakra
+                and chakra:IsA("ValueBase")
+                and maxChakra:IsA("ValueBase") then
+                chakraValue = "🌀 "
+                    .. math.floor(tonumber(chakra.Value) or 0)
+                    .. "/" .. math.floor(tonumber(maxChakra.Value) or 0)
+            end
+
+            if healthValue ~= "" and chakraValue ~= "" then
+                table.insert(lines,
+                    '<font color="rgb(255,75,75)">' .. healthValue
+                    .. '</font> / <font color="rgb(65,175,255)">'
+                    .. chakraValue .. '</font>'
+                )
+            elseif healthValue ~= "" then
+                table.insert(lines,
+                    '<font color="rgb(255,75,75)">' .. healthValue .. '</font>'
+                )
+            elseif chakraValue ~= "" then
+                table.insert(lines,
+                    '<font color="rgb(65,175,255)">'
+                    .. chakraValue .. '</font>'
+                )
+            end
+
+            local locationLine = ""
+            if State.PlayerESPShowLocation and locationName ~= "" then
+                locationLine = "[" .. locationName .. "]"
+            end
+
+            if State.PlayerESPShowRange then
+                local range = tostring(distance) .. " st"
+                locationLine = locationLine ~= ""
+                    and locationLine .. " / " .. range
+                    or range
+            end
+
+            if locationLine ~= "" then
+                table.insert(lines, locationLine)
+            end
+
+            local settings = Services.ReplicatedStorage:FindFirstChild("Settings")
+            local playerSettings = settings and settings:FindFirstChild(plr.Name)
+            local bloodline = playerSettings
+                and playerSettings:FindFirstChild("Bloodline", true)
+
+            if State.PlayerESPShowRaces and bloodline
+                and bloodline:IsA("ValueBase")
+                and tostring(bloodline.Value) ~= "" then
+                table.insert(lines, "[" .. tostring(bloodline.Value) .. "]")
+            end
+
+            text.Text = table.concat(lines, "\n")
         end
     )
 
     State.PlayerESPObjects[plr] = {
         Highlight = highlight,
         Billboard = billboard,
-        RenderConnectionName =
-            renderConnectionName
+        RenderConnectionName = renderName,
+        Character = char,
+        Root = root,
+        Humanoid = humanoid
     }
-
 end
 
-
 function funcs.CreatePlayerESP(plr)
-
-    if plr == Services.LocalPlayer then
-        return
-    end
-
-    if not State.PlayerESPEnabled then
-        return
-    end
+    if not plr or plr == Services.LocalPlayer
+        or not State.PlayerESPEnabled then return end
 
     ConnectionManager.Connect(
         "PlayerESP_Character_" .. plr.UserId,
         plr.CharacterAdded,
         function(char)
-
             task.wait(1)
-
-            if not State.PlayerESPEnabled then
-                return
+            if State.PlayerESPEnabled and plr.Parent then
+                funcs.SetupCharacter(plr, char)
             end
-
-            if not plr.Parent then
-                return
-            end
-
-            funcs.SetupCharacter(
-                plr,
-                char
-            )
-
         end
     )
 
     if plr.Character then
-
-        funcs.SetupCharacter(
-            plr,
-            plr.Character
-        )
-
+        funcs.SetupCharacter(plr, plr.Character)
     end
-
 end
 
+function funcs.CheckWorkspaceModels()
+    if not State.PlayerESPEnabled then return end
+
+    for _, plr in ipairs(Services.Players:GetPlayers()) do
+        if plr ~= Services.LocalPlayer then
+            local model = workspace:FindFirstChild(plr.Name)
+            local data = State.PlayerESPObjects[plr]
+
+            if model and model:IsA("Model") then
+                local root = model:FindFirstChild("HumanoidRootPart")
+                local humanoid = model:FindFirstChildOfClass("Humanoid")
+
+                if root and humanoid and (
+                    not data
+                    or data.Character ~= model
+                    or data.Root ~= root
+                    or data.Humanoid ~= humanoid
+                    or not data.Highlight
+                    or not data.Highlight.Parent
+                    or not data.Billboard
+                    or not data.Billboard.Parent
+                ) then
+                    funcs.SetupCharacter(plr, model)
+                end
+            elseif data then
+                funcs.RemovePlayerESPFromPlayer(plr)
+            end
+        end
+    end
+end
 
 function funcs.RemovePlayerESP()
-
-    for plr in pairs(
-        State.PlayerESPObjects
-    ) do
-
+    for plr in pairs(State.PlayerESPObjects) do
         funcs.RemovePlayerESPFromPlayer(plr)
-
     end
 
-    ConnectionManager.DisconnectPrefix(
-        "PlayerESP_Character_"
-    )
-
-    ConnectionManager.DisconnectPrefix(
-        "PlayerESP_Render_"
-    )
-
+    ConnectionManager.DisconnectPrefix("PlayerESP_Character_")
+    ConnectionManager.DisconnectPrefix("PlayerESP_Render_")
+    ConnectionManager.Disconnect("PlayerESP_WorkspaceCheck")
 end
 
-
-Groupboxes.PlayerESP:AddToggle(
-    "PlayerESPToggle",
-    {
-        Text = "Player ESP",
-        Default = false
-    }
-):OnChanged(function(Value)
-
+Groupboxes.PlayerESP:AddToggle("PlayerESPToggle", {
+    Text = "Player ESP",
+    Default = false
+}):OnChanged(function(Value)
     State.PlayerESPEnabled = Value
 
     if Value then
-
-        for _, plr in ipairs(
-            Services.Players:GetPlayers()
-        ) do
-
+        for _, plr in ipairs(Services.Players:GetPlayers()) do
             if plr ~= Services.LocalPlayer then
                 funcs.CreatePlayerESP(plr)
             end
-
         end
 
         ConnectionManager.Connect(
             "PlayerESP_PlayerAdded",
             Services.Players.PlayerAdded,
             function(plr)
-
-                if plr == Services.LocalPlayer then
-                    return
+                if plr ~= Services.LocalPlayer
+                    and State.PlayerESPEnabled then
+                    funcs.CreatePlayerESP(plr)
                 end
-
-                if not State.PlayerESPEnabled then
-                    return
-                end
-
-                funcs.CreatePlayerESP(plr)
-
             end
         )
 
@@ -2649,78 +2619,91 @@ Groupboxes.PlayerESP:AddToggle(
             "PlayerESP_PlayerRemoving",
             Services.Players.PlayerRemoving,
             function(plr)
-
                 funcs.RemovePlayerESPFromPlayer(plr)
-
             end
         )
 
+        ConnectionManager.Connect(
+            "PlayerESP_WorkspaceCheck",
+            Services.RunService.Heartbeat,
+            function()
+                if not State.PlayerESPEnabled then return end
+
+                if not State.PlayerESPNextCheck
+                    or os.clock() >= State.PlayerESPNextCheck then
+                    State.PlayerESPNextCheck =
+                        os.clock() + State.PlayerESPCheckInterval
+
+                    funcs.CheckWorkspaceModels()
+                end
+            end
+        )
     else
+        ConnectionManager.Disconnect("PlayerESP_PlayerAdded")
+        ConnectionManager.Disconnect("PlayerESP_PlayerRemoving")
 
-        ConnectionManager.Disconnect(
-            "PlayerESP_PlayerAdded"
-        )
-
-        ConnectionManager.Disconnect(
-            "PlayerESP_PlayerRemoving"
-        )
-
+        State.PlayerESPNextCheck = nil
         funcs.RemovePlayerESP()
-
     end
-
 end)
 
-
-Groupboxes.PlayerESP:AddToggle(
-    "PlayerESPShowLocation",
-    {
-        Text = "Show Location",
-        Default = true
-    }
-):OnChanged(function(Value)
-
+Groupboxes.PlayerESP:AddToggle("PlayerESPShowLocation", {
+    Text = "Show Location",
+    Default = true
+}):OnChanged(function(Value)
     State.PlayerESPShowLocation = Value
-
 end)
 
+Groupboxes.PlayerESP:AddToggle("PlayerESPShowRaces", {
+    Text = "Show Races",
+    Default = true
+}):OnChanged(function(Value)
+    State.PlayerESPShowRaces = Value
+end)
 
-Groupboxes.PlayerESP:AddDropdown(
-    "PlayerESPShowLocationMode",
-    {
-        Text = "Location Type",
+Groupboxes.PlayerESP:AddToggle("PlayerESPShowHealth", {
+    Text = "Show Health",
+    Default = true
+}):OnChanged(function(Value)
+    State.PlayerESPShowHealth = Value
+end)
 
-        Values = {
-            "Show Closest Chakra Point",
-            "Show Location Attribute (Buggy)"
-        },
+Groupboxes.PlayerESP:AddToggle("PlayerESPShowRange", {
+    Text = "Show Range",
+    Default = true
+}):OnChanged(function(Value)
+    State.PlayerESPShowRange = Value
+end)
 
-        Default = "Show Closest Chakra Point"
-    }
-):OnChanged(function(Value)
+Groupboxes.PlayerESP:AddToggle("PlayerESPShowChakra", {
+    Text = "Show Chakra",
+    Default = true
+}):OnChanged(function(Value)
+    State.PlayerESPShowChakra = Value
+end)
 
+Groupboxes.PlayerESP:AddDropdown("PlayerESPShowLocationMode", {
+    Text = "Location Type",
+    Values = {
+        "Show Closest Chakra Point",
+        "Show Location Attribute (Buggy)"
+    },
+    Default = "Show Closest Chakra Point"
+}):OnChanged(function(Value)
     State.PlayerESPShowLocationMode = Value
-
 end)
 
-
-Groupboxes.PlayerESP:AddSlider(
-    "PlayerESPDistance",
-    {
-        Text = "ESP Distance",
-        Default = 2000,
-        Min = 50,
-        Max = 15000,
-        Rounding = 0,
-        Compact = true,
-        Suffix = " st"
-    }
-):OnChanged(function(Value)
-
+Groupboxes.PlayerESP:AddSlider("PlayerESPDistance", {
+    Text = "ESP Distance",
+    Default = 2000,
+    Min = 50,
+    Max = 15000,
+    Rounding = 0,
+    Compact = true,
+    Suffix = " st"
+}):OnChanged(function(Value)
     State.PlayerESPMaxDistance = Value
-
 end)
-
 
 State.BrightnessLevel = State.BrightnessLevel or 2
 State.FullBrightEnabled = State.FullBrightEnabled or false
@@ -2861,492 +2844,27 @@ Modules.NoRainToggle:OnChanged(function(Value)
 	funcs.noRain(Value)
 end)
 
+Modules.NoCloudsToggle = Groupboxes.VisualWorld:AddToggle("NoClouds", {
+    Text = "No Clouds",
+    Default = false
+})
+
+function funcs.noClouds(state)
+    local clouds = workspace.Terrain:FindFirstChildOfClass("Clouds")
+
+    if clouds then
+        clouds.Enabled = not state
+    end
+end
+
+Modules.NoCloudsToggle:OnChanged(function(Value)
+    funcs.noClouds(Value)
+end)
+
 -- Misc
 Groupboxes.ServerSystems = Tabs.Misc:AddLeftGroupbox("Server Systems", "server")
 Groupboxes.LeftGroupBox = Tabs.Misc:AddLeftGroupbox("Executable Scripts", "code")
 Groupboxes.RightGroupBox = Tabs.Misc:AddRightGroupbox("Player Systems", "user")
-
-State.ServerFilter = {
-    ServerName = "",
-    MaxPlayers = 20,
-    Regions = {}
-}
-
-State.AttemptedServers = {}
-State.PlayerList = State.PlayerList or {}
-State.SelectedPlayer = State.SelectedPlayer or ""
-
-State.ServerList =
-    Services.LocalPlayer.PlayerGui.ClientGui.Mainframe.Rest.ServerList.BackDrop.List
-
-
-Modules.ServerNameInput =
-    Groupboxes.ServerSystems:AddInput(
-        "ServerNameInput",
-        {
-            Text = "Server Name",
-            Description = "Server Name",
-            Default = "",
-            Placeholder = "Server Name",
-            Numeric = false,
-            Finished = false,
-
-            Callback = function(Value)
-                State.ServerFilter.ServerName =
-                    tostring(Value or ""):lower()
-            end
-        }
-    )
-
-
-Modules.MaxPlayersSlider =
-    Groupboxes.ServerSystems:AddSlider(
-        "MaxPlayersSlider",
-        {
-            Text = "Max Players",
-            Description = "Select the max player value to hop server",
-            Default = 20,
-            Min = 1,
-            Max = 20,
-            Rounding = 0,
-
-            Callback = function(Value)
-                State.ServerFilter.MaxPlayers =
-                    tonumber(Value) or 20
-            end
-        }
-    )
-
-
-Modules.RegionDropdown =
-    Groupboxes.ServerSystems:AddDropdown(
-        "RegionDropdown",
-        {
-            Text = "Server Region",
-            Description = "You can select multiple regions.",
-            Values = {
-                "Netherlands",
-                "Germany",
-                "Singapore",
-                "United States",
-                "Brazil",
-                "Poland",
-                "South Africa"
-            },
-            Multi = true,
-            Default = {},
-
-            Callback = function(Value)
-                State.ServerFilter.Regions =
-                    Value or {}
-            end
-        }
-    )
-
-
-function funcs.GetText(Object)
-    if not Object then
-        return ""
-    end
-
-    if Object:IsA("TextLabel")
-        or Object:IsA("TextButton")
-        or Object:IsA("TextBox")
-    then
-        return tostring(Object.Text or "")
-    end
-
-    return ""
-end
-
-
-function funcs.GetServerKey(serverTemplate)
-    if not serverTemplate then
-        return ""
-    end
-
-    local serverName =
-        funcs.GetText(
-            serverTemplate:FindFirstChild("ServerName")
-        )
-
-    local serverRegion =
-        funcs.GetText(
-            serverTemplate:FindFirstChild("ServerRegion")
-        )
-
-    local players =
-        funcs.GetText(
-            serverTemplate:FindFirstChild("Players")
-        )
-
-    return (
-        serverName
-        .. "|"
-        .. serverRegion
-        .. "|"
-        .. players
-    ):lower()
-end
-
-
-function funcs.RegionMatches(serverTemplate)
-    if not serverTemplate then
-        return false
-    end
-
-    local playersLabel =
-        serverTemplate:FindFirstChild("Players")
-
-    local regionLabel =
-        serverTemplate:FindFirstChild("ServerRegion")
-
-    local playerText =
-        funcs.GetText(playersLabel)
-
-    local currentPlayers =
-        tonumber(
-            playerText:match("%d+")
-        )
-
-    if currentPlayers
-        and currentPlayers > State.ServerFilter.MaxPlayers
-    then
-        return false
-    end
-
-    local selectedRegions =
-        State.ServerFilter.Regions or {}
-
-    local hasRegionFilter = false
-
-    for _, enabled in pairs(selectedRegions) do
-        if enabled then
-            hasRegionFilter = true
-            break
-        end
-    end
-
-    if hasRegionFilter then
-        local currentRegion =
-            funcs.GetText(regionLabel):lower()
-
-        local regionAllowed = false
-
-        for region, enabled in pairs(selectedRegions) do
-            if enabled then
-                local regionValue =
-                    tostring(region):lower()
-
-                if string.find(
-                    currentRegion,
-                    regionValue,
-                    1,
-                    true
-                ) then
-                    regionAllowed = true
-                    break
-                end
-            end
-        end
-
-        if not regionAllowed then
-            return false
-        end
-    end
-
-    return true
-end
-
-
-function funcs.ServerNameMatches(serverTemplate)
-    if not serverTemplate then
-        return false
-    end
-
-    local serverName =
-        serverTemplate:FindFirstChild("ServerName")
-
-    local wantedName =
-        State.ServerFilter.ServerName or ""
-
-    if wantedName == "" then
-        return false
-    end
-
-    local currentName =
-        funcs.GetText(serverName):lower()
-
-    return string.find(
-        currentName,
-        wantedName,
-        1,
-        true
-    ) ~= nil
-end
-
-
-function funcs.TryJoinServer(
-    serverTemplate,
-    useServerName
-)
-    if not serverTemplate
-        or serverTemplate.Name ~= "ServerTemplate"
-    then
-        return false
-    end
-
-    local serverKey =
-        funcs.GetServerKey(serverTemplate)
-
-    if serverKey == ""
-        or State.AttemptedServers[serverKey]
-    then
-        return false
-    end
-
-    if useServerName then
-        if not funcs.ServerNameMatches(serverTemplate) then
-            return false
-        end
-    else
-        if not funcs.RegionMatches(serverTemplate) then
-            return false
-        end
-    end
-
-    local joinButton =
-        serverTemplate:FindFirstChild("JoinButton")
-
-    if not joinButton
-        or not joinButton:IsA("TextButton")
-    then
-        return false
-    end
-
-    local success, connections =
-        pcall(function()
-            return getconnections(
-                joinButton.MouseButton1Click
-            )
-        end)
-
-    if not success or not connections then
-        return false
-    end
-
-    for _, connection in ipairs(connections) do
-        if connection.Function then
-            State.AttemptedServers[serverKey] = true
-
-            local serverName =
-                funcs.GetText(
-                    serverTemplate:FindFirstChild("ServerName")
-                )
-
-            local players =
-                funcs.GetText(
-                    serverTemplate:FindFirstChild("Players")
-                )
-
-            local region =
-                funcs.GetText(
-                    serverTemplate:FindFirstChild("ServerRegion")
-                )
-
-            print(
-                "[ServerSystems] Joining:",
-                serverName,
-                players,
-                region
-            )
-
-            Library:Notify({
-                Title = "Server Systems",
-                Description =
-                    "Joining: "
-                    .. serverName
-                    .. " | "
-                    .. players
-                    .. " | "
-                    .. region,
-                Time = 3
-            })
-
-            task.spawn(function()
-                pcall(function()
-                    connection.Function()
-                end)
-            end)
-
-            return true
-        end
-    end
-
-    return false
-end
-
-
-Modules.ServerHopButton =
-    Groupboxes.ServerSystems:AddButton(
-        {
-            Text = "Server Hop",
-
-            Func = function()
-                State.AttemptedServers = {}
-
-                if not State.ServerList
-                    or not State.ServerList.Parent
-                then
-                    return
-                end
-
-                for _, serverTemplate in ipairs(
-                    State.ServerList:GetChildren()
-                ) do
-                    if serverTemplate.Name == "ServerTemplate" then
-                        if funcs.TryJoinServer(
-                            serverTemplate,
-                            false
-                        ) then
-                            break
-                        end
-                    end
-                end
-            end
-        }
-    )
-
-
-Modules.JoinWithNameButton =
-    Groupboxes.ServerSystems:AddButton(
-        {
-            Text = "Join With Server Name",
-            Description = "It's still on beta it can be buggy.",
-
-            Func = function()
-                if State.ServerFilter.ServerName == "" then
-                    return
-                end
-
-                State.AttemptedServers = {}
-
-                if not State.ServerList
-                    or not State.ServerList.Parent
-                then
-                    return
-                end
-
-                for _, serverTemplate in ipairs(
-                    State.ServerList:GetChildren()
-                ) do
-                    if serverTemplate.Name == "ServerTemplate" then
-                        if funcs.TryJoinServer(
-                            serverTemplate,
-                            true
-                        ) then
-                            break
-                        end
-                    end
-                end
-            end
-        }
-    )
-
-
-State.ServerHopEnabled = false
-State.ServerHopRunning = false
-
-Modules.ServerHopToggle =
-    Groupboxes.ServerSystems:AddToggle(
-        "ServerHopToggle",
-        {
-            Text = "Auto Server Hop",
-            Description = "Automatically tries all available servers.",
-            Default = false,
-
-            Callback = function(Value)
-                State.ServerHopEnabled = Value
-
-                if not Value
-                    or State.ServerHopRunning
-                then
-                    return
-                end
-
-                State.ServerHopRunning = true
-                State.AttemptedServers = {}
-
-                task.spawn(function()
-                    while State.ServerHopEnabled do
-                        local attemptedThisCycle = false
-
-                        if State.ServerList
-                            and State.ServerList.Parent
-                        then
-                            for _, serverTemplate in ipairs(
-                                State.ServerList:GetChildren()
-                            ) do
-                                if not State.ServerHopEnabled then
-                                    break
-                                end
-
-                                if serverTemplate.Name == "ServerTemplate" then
-                                    local serverKey =
-                                        funcs.GetServerKey(
-                                            serverTemplate
-                                        )
-
-                                    if not State.AttemptedServers[serverKey]
-                                        and funcs.RegionMatches(serverTemplate)
-                                    then
-                                        attemptedThisCycle = true
-
-                                        if funcs.TryJoinServer(
-                                            serverTemplate,
-                                            false
-                                        ) then
-                                            task.wait(1)
-                                            break
-                                        end
-                                    end
-                                end
-                            end
-                        end
-
-                        if not attemptedThisCycle then
-                            State.AttemptedServers = {}
-                            task.wait(1)
-                        else
-                            task.wait(0.5)
-                        end
-                    end
-
-                    State.ServerHopRunning = false
-                end)
-            end
-        }
-    )
-
-
-Services.TeleportService.TeleportInitFailed:Connect(
-    function(Player, TeleportResult, ErrorMessage)
-        if Player ~= Services.LocalPlayer then
-            return
-        end
-
-        warn(
-            "[ServerSystems] Teleport failed:",
-            TeleportResult,
-            ErrorMessage
-        )
-
-        if State.ServerHopEnabled then
-            task.wait(1)
-        end
-    end
-)
-
 
 Groupboxes.LeftGroupBox:AddButton({
     Text = "Execute Infinite Yield",
@@ -3683,10 +3201,6 @@ Groupboxes.LibraryFuncs:AddButton({
 
 
 -- WaterMark 
-State.RegionLabel =
-    game:GetService("Players").LocalPlayer.PlayerGui
-        .ClientGui.Mainframe.Loadout.TopFrame.Region
-
 State.FPS = 0
 State.Frames = 0
 State.LastUpdate = tick()
@@ -3714,35 +3228,8 @@ function funcs.UpdateWatermark()
         )
     end)
 
-    State.ServerName = "Unknown"
 
-    pcall(function()
-        local ServerNameLabel =
-            Services.Players.LocalPlayer.PlayerGui
-                .ClientGui.Mainframe.Rest.MainMenuFrame.ServerName
 
-        local Text = tostring(ServerNameLabel.Text)
-
-        State.ServerName =
-            Text:gsub("^%s*Server Name%s*:%s*", ""):gsub("%s+$", "")
-
-        if State.ServerName == "" then
-            State.ServerName = "Unknown"
-        end
-    end)
-
-    State.Region = "Unknown"
-
-    pcall(function()
-        local Text = tostring(State.RegionLabel.Text)
-
-        State.Region =
-            Text:gsub("^%s*Server Region%s*:%s*", ""):gsub("%s+$", "")
-
-        if State.Region == "" then
-            State.Region = "Unknown"
-        end
-    end)
 
     State.Time = os.date("%H:%M")
 
@@ -3754,8 +3241,6 @@ function funcs.UpdateWatermark()
         '<font color="#00BFFF">Ping: ' .. State.Ping .. 'ms</font> ' ..
         '<font color="#808080">|</font> ' ..
         '<font color="#FFD700">Players: ' .. Services.PlayerCount .. '/' .. Services.MaxPlayers .. '</font> ' ..
-        '<font color="#808080">|</font> ' ..
-        '<font color="#A020F0">Server: ' .. State.ServerName .. ' - ' .. State.Region .. '</font> ' ..
         '<font color="#808080">|</font> ' ..
         '<font color="#FF69B4">' .. State.Time .. '</font>'
     )
@@ -3851,19 +3336,32 @@ Groupboxes.LibraryTab:AddToggle(
 
 Groupboxes.LibraryTab:AddButton("Unload", function()
 
-        Toggles.aim_Enabled.Value = false
+    Toggles.aim_Enabled.Value = false
+    Toggles.InfiniteStamina:SetValue(false)
 
-        if SilentAimGui.fov_circle then
-            SilentAimGui.fov_circle:Remove()
-            SilentAimGui.fov_circle = nil
-        end
+    ConnectionManager.Disconnect("InfiniteStamina")
 
-        if oldIndex then
-            hookmetamethod(game, "__index", oldIndex)
-            oldIndex = nil
-        end
+    State.InitialJumpCount = nil
+    State.MaxJumpCount = nil
+    State.StaminaMode = "Infinite Value"
+    State.StaminaRegenDelay = 2
+    State.StaminaRegenElapsed = 0
+    State.LegitRegenMin = 4
+    State.LegitRegenMax = 7
+    State.LastJumpCount = nil
+    State.NextLegitRegen = nil
 
-        getgenv().NewNoFallEnabled = false
+    if SilentAimGui.fov_circle then
+        SilentAimGui.fov_circle:Remove()
+        SilentAimGui.fov_circle = nil
+    end
+
+    if oldIndex then
+        hookmetamethod(game, "__index", oldIndex)
+        oldIndex = nil
+    end
+
+    getgenv().NewNoFallEnabled = false
 
     if State.noFogConnection then
         State.noFogConnection:Disconnect()
@@ -3885,21 +3383,47 @@ Groupboxes.LibraryTab:AddButton("Unload", function()
         State.FullBrightConnection = nil
     end
 
-        State.AutoExecute = false
-        funcs.ClearAutoExecute()
-        funcs.clearObserveConnections()
-        funcs.StopAntiAFK()
-        funcs.resetCamera()
-        funcs.RemovePlayerESP()
-        funcs.RemoveAttachments("NoSlowdownVelocity")
-        funcs.RemoveAttachments("NoSlowdownAttachment")
-        ConnectionManager.DisconnectPrefix("SilentAim.")
-        funcs.StopBurnListener()
-        funcs.StopWatermarkFPS()
-        funcs.UnloadIdentitySpoofer()
-        ConnectionManager.DisconnectAll()
-        Library:Unload()
+    local clouds = workspace.Terrain:FindFirstChildOfClass("Clouds")
+    if clouds then
+        clouds.Enabled = true
+    end
+
+    State.AutoExecute = false
+
+    -- Player ESP temizleme
+    State.PlayerESPEnabled = false
+    State.PlayerESPNextCheck = nil
+
+    ConnectionManager.Disconnect("PlayerESP_PlayerAdded")
+    ConnectionManager.Disconnect("PlayerESP_PlayerRemoving")
+    ConnectionManager.Disconnect("PlayerESP_WorkspaceCheck")
+
+    ConnectionManager.DisconnectPrefix("PlayerESP_Character_")
+    ConnectionManager.DisconnectPrefix("PlayerESP_Render_")
+
+    funcs.RemovePlayerESP()
+
+    State.PlayerESPObjects = {}
+
+    funcs.ClearAutoExecute()
+    funcs.clearObserveConnections()
+    funcs.StopAntiAFK()
+    funcs.resetCamera()
+    funcs.RemoveAttachments("NoSlowdownVelocity")
+    funcs.RemoveAttachments("NoSlowdownAttachment")
+
+    ConnectionManager.DisconnectPrefix("SilentAim.")
+
+    funcs.StopBurnListener()
+    funcs.StopWatermarkFPS()
+    funcs.UnloadIdentitySpoofer()
+
+    ConnectionManager.DisconnectAll()
+
+    Library:Unload()
+
 end)
+
 
 Groupboxes.LibraryTab:AddLabel("Menu bind")
     :AddKeyPicker("MenuKeybind", {
@@ -4000,7 +3524,7 @@ Library:Notify({
     Time = 5
 })
 
-print(SaveManager.BuildConfigSection)
+print("BuildConfigSection:", SaveManager.BuildConfigSection)
 
 ThemeManager:SetLibrary(Library)
 SaveManager:SetLibrary(Library)
@@ -4012,13 +3536,7 @@ ThemeManager:SetFolder("Themes")
 SaveManager:SetFolder("PermaDeathEnjoyer/Configs")
 SaveManager:SetSubFolder("BloodlinesExternal")
 
--- Config System
-
 SaveManager:BuildConfigSection(Tabs.Config)
-
 ThemeManager:ApplyToTab(Tabs.Config)
 
 SaveManager:LoadAutoloadConfig()
-
-
-SaveManager:SetIgnoreIndexes({ "MenuKeybind" })
